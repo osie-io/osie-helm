@@ -1,0 +1,16 @@
+{{- $uiContext := (merge dict . .Values.ui) }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "osie.componentName" $uiContext }}
+  labels:
+    {{- include "osie.labels" $uiContext | nindent 4 }}
+spec:
+  type: {{ $uiContext.service.type }}
+  ports:
+    - port: {{ $uiContext.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "osie.selectorLabels" $uiContext | nindent 4 }}

@@ -1,0 +1,16 @@
+{{- $apiContext := (merge dict . .Values.api) -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "osie.componentName" $apiContext }}
+  labels:
+    {{- include "osie.labels" $apiContext | nindent 4 }}
+spec:
+  type: {{ $apiContext.service.type }}
+  ports:
+    - port: {{ $apiContext.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "osie.selectorLabels" $apiContext | nindent 4 }}

@@ -1,0 +1,19 @@
+{{- $apiContext := (merge dict . .Values.api) -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ printf "%s-headless" (include "osie.componentName" $apiContext)  | trunc 63 | trimSuffix "-" }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels:
+    {{- include "osie.labels" $apiContext | nindent 4 }}
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+    - name: http
+      port: {{ coalesce $apiContext.service.port }}
+      protocol: TCP
+      targetPort: http
+  publishNotReadyAddresses: true
+  selector:
+    {{- include "osie.selectorLabels" $apiContext | nindent 4 }}

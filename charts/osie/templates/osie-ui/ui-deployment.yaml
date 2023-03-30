@@ -1,0 +1,74 @@
+{{- $uiContext := (merge dict . .Values.ui) -}}
+{{- $apiContext := (merge dict . .Values.api) -}}
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "osie.componentName" $uiContext }}
+  labels:
+    {{- include "osie.labels" $uiContext | nindent 4 }}
+spec:
+  replicas: {{ $uiContext.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "osie.selectorLabels" $uiContext | nindent 6 }}
+  template:
+    metadata:
+      {{- with $uiContext.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "osie.labels" $uiContext | nindent 8 }}
+    spec:
+      {{- with $uiContext.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml $uiContext.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}-{{ $uiContext.component }}
+          securityContext:
+            {{- toYaml $uiContext.securityContext | nindent 12 }}
+          image: "{{ $uiContext.image.repository }}:{{ $uiContext.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ $uiContext.image.pullPolicy }}
+          env:
+            - name: KEYCLOAK_URL
+              value: {{ include "osie.keycloakUrl" . }}
+            - name: KEYCLOAK_REALM
+              value: {{ .Values.ui.oauth2.realm }}
+            - name: KEYCLOAK_CLIENTID
+              value: {{ .Values.ui.oauth2.clientId }}
+            - name: BASE_URL
+              value: {{ include "osie.uiUrl" . }}
+            - name: API_HOST
+              value: https://{{ include "osie.ingressHostname" $apiContext }}
+            - name: API_PREFIX
+              value: {{ tpl $apiContext.ingress.path $apiContext }}
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          resources:
+            {{- toYaml $uiContext.resources | nindent 12 }}
+      {{- with $uiContext.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $uiContext.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $uiContext.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

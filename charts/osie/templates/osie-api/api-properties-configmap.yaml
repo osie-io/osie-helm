@@ -1,0 +1,55 @@
+{{- $apiContext := (merge dict . .Values.api) -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ printf "%s-config" (include "osie.componentName" $apiContext) }}
+  namespace: {{ include "common.names.namespace" $apiContext | quote }}
+  labels:
+    {{- include "osie.labels" $apiContext | nindent 4 }}
+data:
+  application.yml: |
+    logging:
+      level:
+        root: INFO
+    osie:
+      license:
+        key: {{ .Values.license.key }}
+      self:
+        api-base-url: https://{{ include "osie.ingressHostname" $apiContext }}
+        ui-base-url: {{ include "osie.uiUrl" . }}
+    spring:
+      data:
+        redis:
+          repositories:
+            enabled: false
+      redis:
+        host: {{ include "osie.redis.host" . }}
+        port: {{ include "osie.redis.port" . }}
+      rabbitmq:
+        host: {{ include "osie.rabbitmq.host" . }}
+        port: {{ include "osie.rabbitmq.port" . }}
+        username: {{ include "osie.rabbitmq.user" . }}
+    openid:
+      issuer: {{ include "osie.defaultIssuer" . }}
+      adminIssuer: {{ include "osie.adminIssuer" . }}
+    {{- if .Values.sentry.dsn }}
+    sentry:
+      traces-sample-rate: 1.0
+      dsn: {{ .Values.sentry.dsn }}
+    {{- end}}
+    management:
+      health:
+        readinessstate:
+          enabled: true
+        livenessstate:
+          enabled: true
+      endpoints:
+        web:
+          exposure:
+            include: "health"
+      server:
+        port: 8081
+    server:
+      port: 8080
+      servlet:
+        context-path: {{ $apiContext.httpContext }}

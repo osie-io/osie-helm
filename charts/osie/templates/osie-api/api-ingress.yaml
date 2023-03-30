@@ -1,0 +1,29 @@
+{{- if .Values.global.ingress.enabled }}
+{{- $apiContext := (merge dict . .Values.api) -}}
+apiVersion: {{ include "common.capabilities.ingress.apiVersion" . }}
+kind: Ingress
+metadata:
+  name: {{ include "osie.componentName" $apiContext }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels:
+    {{- include "osie.labels" $apiContext | nindent 4 }}
+  annotations:
+    {{- if .Values.global.ingress.annotations }}
+    {{- include "common.tplvalues.render" (dict "value" .Values.global.ingress.annotations "context" $) | nindent 4 }}
+    {{- end }}
+spec:
+  {{- if and .Values.global.ingress.ingressClassName (eq "true" (include "common.ingress.supportsIngressClassname" .)) }}
+  ingressClassName: {{ .Values.global.ingress.ingressClassName | quote }}
+  {{- end }}
+  rules:
+  {{ include "osie.ingressRule" $apiContext | nindent 4}}
+
+  {{- if or (and .Values.global.ingress.tls (or (include "common.ingress.certManagerRequest" ( dict "annotations" .Values.global.ingress.annotations )) .Values.global.ingress.secrets ))  }}
+  tls:
+  {{- if and .Values.global.ingress.tls (or (include "common.ingress.certManagerRequest" ( dict "annotations" .Values.global.ingress.annotations )) .Values.global.ingress.secrets) }}
+    - hosts:
+        - {{ include "osie.ingressHostname" $apiContext }}
+      secretName: {{ printf "%s-tls" (include "osie.ingressHostname" $apiContext) }}
+    {{- end }}
+  {{- end }}
+{{- end }}

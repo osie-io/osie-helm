@@ -1,0 +1,69 @@
+# Default values for osie.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+imagePullSecrets: [ ]
+nameOverride: ""
+fullnameOverride: ""
+
+enabled: true
+replicaCount: 1
+image:
+  repository: ghcr.io/osie-io/osie-notifier
+  pullPolicy: Always
+component: "notifier"
+
+rabbitmq:
+  addresses: "osie-rabbitmq:5672"
+  auth:
+    username: ""
+    password: ""
+    existingSecret: ""
+    existingSecretPasswordKey: ""
+
+osie:
+  api:
+    url: "test"
+
+openstack:
+  notification:
+    queue: osie-notifier
+    topic: notifications.*
+    services:
+      - exchange: nova
+      - exchange: magnum
+      - exchange: neutron
+      - exchange: openstack
+
+podAnnotations: { }
+podSecurityContext: { }
+# fsGroup: 2000
+securityContext: { }
+# capabilities:
+#   drop:
+#   - ALL
+# readOnlyRootFilesystem: true
+# runAsNonRoot: true
+# runAsUser: 1000
+service:
+  type: ClusterIP
+  port: 80
+resources: { }
+# limits:
+#   cpu: 100m
+#   memory: 128Mi
+# requests:
+#   cpu: 100m
+#   memory: 128Mi
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+nodeSelector: { }
+tolerations: [ ]
+affinity: { }
+
+sentry:
+  dsn: ""
+

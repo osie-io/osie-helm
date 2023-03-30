@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "common.names.fullname" . }}
+  labels:
+     {{- include "common.labels.standard" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+       {{- include "common.labels.matchLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        checksum/configmap-properties: {{ include (print $.Template.BasePath "/notifier-configmap.yaml") . | sha256sum }}
+       {{- with .Values.podAnnotations }}
+         {{- toYaml . | nindent 8 }}
+       {{- end }}
+      labels:
+         {{- include "common.labels.standard" . | nindent 8 }}
+    spec:
+       {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+         {{- toYaml . | nindent 8 }}
+       {{- end }}
+      securityContext:
+         {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+             {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- if .Values.rabbitmq.auth.username }}
+          env:
+            - name: SPRING_RABBITMQ_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "osie.notifier.rabbitmq.secretName" . }}
+                  key: {{ include "osie.notifier.rabbitmq.secretKey" . }}
+          {{- end}}
+          volumeMounts:
+            - name: osie-notifier-config
+              mountPath: /opt/osie/notifier/application.yml
+              subPath: application.yml
+          ports:
+            - name: actuator
+              containerPort: 8080
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: actuator
+            initialDelaySeconds: 30
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: actuator
+            initialDelaySeconds: 30
+            periodSeconds: 20
+          resources:
+             {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        - name: osie-notifier-config
+          configMap:
+            name: {{ printf "%s-config" (include "common.names.fullname" .) }}
+       {{- with .Values.nodeSelector }}
+      nodeSelector:
+         {{- toYaml . | nindent 8 }}
+       {{- end }}
+       {{- with .Values.affinity }}
+      affinity:
+         {{- toYaml . | nindent 8 }}
+       {{- end }}
+       {{- with .Values.tolerations }}
+      tolerations:
+         {{- toYaml . | nindent 8 }}
+       {{- end }}

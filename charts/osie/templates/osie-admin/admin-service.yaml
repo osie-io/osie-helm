@@ -1,0 +1,16 @@
+{{- $adminContext := (merge dict . .Values.admin) }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "osie.componentName" $adminContext }}
+  labels:
+    {{- include "osie.labels" $adminContext | nindent 4 }}
+spec:
+  type: {{ $adminContext.service.type }}
+  ports:
+    - port: {{ $adminContext.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "osie.selectorLabels" $adminContext | nindent 4 }}

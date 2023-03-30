@@ -1,0 +1,14 @@
+{{- if .Values.keycloak.enabled }}
+Identity provider:
+{{- if (or .Values.global.ingress.enabled .Values.keycloak.ingress.enabled) }}
+    Keycloak URL: {{ include "osie.keycloakUrl" .}}
+{{- end }}
+    Keycloak Admin user: {{ .Values.keycloak.auth.adminUser }}
+    Keycloak Admin password (initial): kubectl -n {{ include "common.names.namespace" . }} get secret {{ include "osie.keycloak.auth.secretName" . }} -o json | jq -r '.data."admin-password"' | base64 -d
+{{- end }}
+
+{{- if .Values.global.ingress.enabled }}
+Osie UI: {{ include "osie.uiUrl" . }}
+Osie Admin: {{ include "osie.adminUrl" . }}
+Osie API: {{ include "osie.apiUrl" . }}
+{{- end }}

@@ -1,0 +1,113 @@
+{{- $apiContext := (merge dict . .Values.api) -}}
+apiVersion: {{ include "common.capabilities.statefulset.apiVersion" $apiContext }}
+kind: StatefulSet
+metadata:
+  name: {{ include "osie.componentName" $apiContext }}
+  labels:
+    {{- include "osie.labels" $apiContext | nindent 4 }}
+spec:
+  replicas: {{ $apiContext.replicaCount }}
+  serviceName: {{ printf "%s-headless" (include "osie.componentName" $apiContext) | trunc 63 | trimSuffix "-" }}
+  selector:
+    matchLabels:
+      {{- include "osie.selectorLabels" $apiContext | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        checksum/configmap-properties: {{ include (print $.Template.BasePath "/osie-api/api-properties-configmap.yaml") . | sha256sum }}
+      {{- with $apiContext.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "osie.labels" $apiContext | nindent 8 }}
+    spec:
+      {{- with $apiContext.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml $apiContext.podSecurityContext | nindent 8 }}
+      initContainers:
+      {{- include "osie.waitForDBInitContainer" $apiContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}-{{ $apiContext.component }}
+          securityContext:
+            {{- toYaml $apiContext.securityContext | nindent 12 }}
+          image: {{ include "osie.image" $apiContext | quote }}
+          imagePullPolicy: {{ $apiContext.image.pullPolicy }}
+          env:
+            - name: SPRING_RABBITMQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "osie.rabbitmq.secretName" $apiContext }}
+                  key: "rabbitmq-password"
+            {{- if (eq .Values.encryption.provider "bcrypt") }}
+            - name: OSIE_ENCRYPTION_DEFAULT_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "osie.bcrypt.secretName" $apiContext }}
+                  key: {{ include "osie.bcrypt.secretKey" $apiContext }}
+            {{- end }}
+            {{- if include "osie.redis.auth.enabled" $apiContext }}
+            - name: SPRING_REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "osie.redis.secretName" $apiContext }}
+                  key: {{ include "osie.redis.secretPasswordKey" $apiContext }}
+            {{- end }}
+            - name: MONGODB_HOSTS
+              value: {{ include "osie.mongodb.hosts" $apiContext | quote }}
+            - name: MONGODB_USER
+              value: {{ ternary (index .Values.mongodb.auth.usernames 0) .Values.externalMongodb.username .Values.mongodb.enabled | quote }}
+            - name: MONGODB_DATABASE
+              value: {{ ternary (index .Values.mongodb.auth.databases 0) .Values.externalMongodb.database .Values.mongodb.enabled | quote }}
+            - name: MONGODB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "osie.mongodb.secretName" $apiContext }}
+                  key: {{ include "osie.mongodb.secretKey" $apiContext}}
+            - name: SPRING_DATA_MONGODB_URI
+              value: "mongodb://$(MONGODB_USER):$(MONGODB_PASSWORD)@$(MONGODB_HOSTS)/$(MONGODB_DATABASE)"
+            - name: SPRING_DATA_MONGODB_DATABASE
+              value: "$(MONGODB_DATABASE)"
+          volumeMounts:
+            - name: osie-api-config
+              mountPath: /opt/osie/api/application.yml
+              subPath: application.yml
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+            - name: actuator
+              containerPort: 8081
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: actuator
+            initialDelaySeconds: 30
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: actuator
+            initialDelaySeconds: 30
+            periodSeconds: 20
+          resources:
+            {{- toYaml $apiContext.resources | nindent 12 }}
+      volumes:
+        - name: osie-api-config
+          configMap:
+            name: {{ printf "%s-config" (include "osie.componentName" $apiContext) }}
+      {{- with $apiContext.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $apiContext.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $apiContext.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
