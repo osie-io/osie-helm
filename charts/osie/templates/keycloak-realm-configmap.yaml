@@ -12,6 +12,8 @@ data:
     realm: {{ .Values.ui.oauth2.realm }}
     displayName: Osie
     displayNameHtml: <div class="kc-logo-text"><span>Osie</span></div>
+    registrationAllowed: true
+    registrationEmailAsUsername: true
     accessTokenLifespan: 3600
     accessTokenLifespanForImplicitFlow: 3600
     ssoSessionIdleTimeout: 300
@@ -60,6 +62,7 @@ data:
     displayNameHtml: <div class="kc-logo-text"><span>Osie Admin</span></div>
     accessTokenLifespan: 3600
     accessTokenLifespanForImplicitFlow: 3600
+    registrationEmailAsUsername: true
     ssoSessionIdleTimeout: 300
     ssoSessionMaxLifespan: 36000
     enabled: true
