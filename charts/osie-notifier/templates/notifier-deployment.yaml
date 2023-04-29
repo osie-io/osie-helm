@@ -33,7 +33,7 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           {{- if .Values.rabbitmq.auth.username }}
           env:
-            - name: SPRING_RABBITMQ_USERNAME
+            - name: SPRING_RABBITMQ_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: {{ include "osie.notifier.rabbitmq.secretName" . }}
@@ -41,7 +41,7 @@ spec:
           {{- end}}
           volumeMounts:
             - name: osie-notifier-config
-              mountPath: /opt/osie/notifier/application.yml
+              mountPath: /srv/config/application.yml
               subPath: application.yml
           ports:
             - name: actuator
