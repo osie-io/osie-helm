@@ -7,15 +7,30 @@ helm repo update
 ```
 
 ### Install the chart
-Default prerequisites (else adapt [values.yaml](charts/osie/values.yaml))
+The following values expect these prerequisites (else adapt [values.yaml](charts/osie/values.yaml))
 - [cert-manager](https://cert-manager.io/docs/installation/) with a [ClusterIssuer](https://cert-manager.io/docs/configuration/acme/) called `letsencrypt`
 - [ingress-nginx](https://kubernetes.github.io/ingress-nginx/deploy/#quick-start) controller
 - a default `StorageClass`
 - `<your-domain>` and `auth.<your-domain>` configured in your DNS pointing to your ingress IP
 
-Then the deployment can be as easy as:
+**values.yaml**
+```yaml
+global:
+  ingress:
+    enabled: true
+    # Keycloak will be deployed automatically at: auth.osie.mycompany.com
+    # You can change keycloak domain by setting: "keycloak.ingress.hostname"
+    hostname: "osie.mycompany.com"
+    ingressClassName: "nginx"
+    annotations:
+      # kubernetes.io/ingress.class: nginx
+      cert-manager.io/cluster-issuer: letsencrypt
+      # Required by Keycloak when using Nginx ingress
+      nginx.ingress.kubernetes.io/proxy-buffer-size: "128k"
+    tls: true
 ```
-helm install osie osie/osie --set global.ingress.hostname=osie.mydomain.com
+```
+helm install osie osie/osie -f values.yaml 
 ```
 See [values.yaml](charts/osie/values.yaml) for more configuration options.
 

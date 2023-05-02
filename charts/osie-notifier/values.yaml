@@ -21,12 +21,12 @@ rabbitmq:
     existingSecretPasswordKey: ""
 
 osie:
-  api:
-    url: "test"
+  dsn: []
+
+notifications:
+    queue: osie-notifier
 
 openstack:
-  notification:
-    queue: osie-notifier
     topic: notifications.*
     services:
       - exchange: nova

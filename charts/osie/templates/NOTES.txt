@@ -1,14 +1,21 @@
+!!! OSIE INSTALLATION DETAILS !!!
+{{- if .Values.global.ingress.enabled }}
+
+Osie URLs:
+
+Osie Admin Dashboard: {{ include "osie.adminUrl" . }}
+Osie Client Dashboard: {{ include "osie.uiUrl" . }}
+Osie API: {{ include "osie.apiUrl" . }}
+{{- end }}
 {{- if .Values.keycloak.enabled }}
-Identity provider:
 {{- if (or .Values.global.ingress.enabled .Values.keycloak.ingress.enabled) }}
+
+Identity provider:
     Keycloak URL: {{ include "osie.keycloakUrl" .}}
 {{- end }}
-    Keycloak Admin user: {{ .Values.keycloak.auth.adminUser }}
-    Keycloak Admin password (initial): kubectl -n {{ include "common.names.namespace" . }} get secret {{ include "osie.keycloak.auth.secretName" . }} -o json | jq -r '.data."admin-password"' | base64 -d
-{{- end }}
 
-{{- if .Values.global.ingress.enabled }}
-Osie UI: {{ include "osie.uiUrl" . }}
-Osie Admin: {{ include "osie.adminUrl" . }}
-Osie API: {{ include "osie.apiUrl" . }}
+The "{{ .Values.keycloak.auth.adminUser }}" user can be used for both Osie and Keycloak administration.
+
+    Admin user: {{ .Values.keycloak.auth.adminUser }}
+    Admin password (initial): kubectl -n {{ include "common.names.namespace" . }} get secret {{ include "osie.keycloak.auth.secretName" . }} -o json | jq -r '.data."admin-password"' | base64 -d
 {{- end }}

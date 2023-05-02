@@ -7,7 +7,7 @@ metadata:
   labels:
     {{- include "osie.labels" $keycloakContext | nindent 4 }}
 data:
-  master.yml: |
+  clients.yml: |
     id: {{ .Values.ui.oauth2.realm }}
     realm: {{ .Values.ui.oauth2.realm }}
     displayName: Osie
@@ -55,7 +55,7 @@ data:
           - phone
           - offline_access
           - microprofile-jwt
-  admin.yml: |
+  admins.yml: |
     id: {{ .Values.admin.oauth2.realm }}
     realm: {{ .Values.admin.oauth2.realm }}
     displayName: Osie Admin
@@ -65,6 +65,7 @@ data:
     registrationEmailAsUsername: true
     ssoSessionIdleTimeout: 300
     ssoSessionMaxLifespan: 36000
+    loginTheme: osie
     enabled: true
     clients:
       - clientId: {{ .Values.admin.oauth2.clientId | quote}}

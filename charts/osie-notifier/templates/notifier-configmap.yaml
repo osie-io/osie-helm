@@ -10,9 +10,9 @@ data:
     logging:
       level:
         root: INFO
-    platform:
-      api:
-        url: {{ required "osie.api.url is required" (tpl .Values.osie.api.url .) }}
+    osie:
+      dsn:
+        {{ required "osie.dsn is required" .Values.osie.dsn | toYaml | nindent 8 }}
     spring:
       rabbitmq:
         addresses: {{ required "rabbitmq.addresses must pe specified." (tpl .Values.rabbitmq.addresses .)}}
@@ -24,6 +24,10 @@ data:
       traces-sample-rate: 1.0
       dsn: {{ tpl .Values.sentry.dsn . }}
     {{- end}}
+    notifications:
+      queue: {{ .Values.notifications.queue | default "osie-notifier" }}
+    openstack:
+      {{ .Values.openstack | toYaml | nindent 6 }}
     management:
       health:
         readinessstate:
