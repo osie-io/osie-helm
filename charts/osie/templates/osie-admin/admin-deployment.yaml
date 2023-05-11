@@ -7,7 +7,7 @@ metadata:
   labels:
     {{- include "osie.labels" $adminContext | nindent 4 }}
 spec:
-  replicas: {{ $adminContext.replicaCount }}
+  replicas: {{ $adminContext.replicaCount | default 1 }}
   selector:
     matchLabels:
       {{- include "osie.selectorLabels" $adminContext | nindent 6 }}

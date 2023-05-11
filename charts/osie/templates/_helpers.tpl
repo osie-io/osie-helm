@@ -34,12 +34,17 @@ Return list of mongodb hosts
 {{- define "osie.mongodb.hosts" -}}
 {{- if .Values.mongodb.enabled -}}
     {{- $mongodbfullname := include "osie.mongodb.fullname" . -}}
-    {{- $replicas := .Values.mongodb.replicaCount | int }}
-    {{- $hosts := printf "%s-0.%s-headless" $mongodbfullname $mongodbfullname -}}
-    {{- range $i, $_e := until (sub $replicas 1 | int) }}
-        {{- $hosts = printf "%s,%s-%d.%s-headless" $hosts $mongodbfullname (add $i 1 | int) $mongodbfullname -}}
+
+    {{- if (eq .Values.mongodb.architecture "replicaset") }}
+        {{- $replicas := .Values.mongodb.replicaCount | int }}
+        {{- $hosts := printf "%s-0.%s-headless" $mongodbfullname $mongodbfullname -}}
+        {{- range $i, $_e := until (sub $replicas 1 | int) }}
+            {{- $hosts = printf "%s,%s-%d.%s-headless" $hosts $mongodbfullname (add $i 1 | int) $mongodbfullname -}}
+        {{- end }}
+        {{- print $hosts }}
+    {{- else }}
+        {{- print $mongodbfullname }}
     {{- end }}
-    {{- print $hosts }}
 {{- else -}}
     {{- print (join "," .Values.externalMongodb.hosts)  -}}
 {{- end -}}
@@ -332,12 +337,17 @@ Bcrypt password
 
       . /opt/osie/scripts/libosie.sh
 
-      info "Waiting for MongoDB replica set to come up"
+      info "Waiting for MongoDB come up"
       for host in ${MONGODB_HOSTS//,/ }; do
             info "Waiting for host $host"
             osie_wait_for_mongodb_connection "mongodb://${MONGODB_USER}:${MONGODB_PASSWORD}@${host}:${MONGODB_PORT}/${MONGODB_DATABASE}"
       done
       info "Database is ready"
+
+      info "Waiting for RabbitMQ come up"
+      osie_wait_for_http_connection "${RABBITMQ_HOST}:15672" 10 3
+      info "RabbitMQ is ready"
+
   env:
     - name: MONGODB_HOSTS
       value: {{ include "osie.mongodb.hosts" . | quote }}
@@ -352,6 +362,8 @@ Bcrypt password
       value: {{ ternary (index .Values.mongodb.auth.usernames 0) .Values.externalMongodb.username .Values.mongodb.enabled | quote }}
     - name: MONGODB_DATABASE
       value: {{ ternary (index .Values.mongodb.auth.databases 0) .Values.externalMongodb.database .Values.mongodb.enabled | quote }}
+    - name: RABBITMQ_HOST
+      value: {{ include "osie.rabbitmq.host" . | quote }}
 {{- end -}}
 
 {{- define "osie.ingressHostname" -}}

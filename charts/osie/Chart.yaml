@@ -37,7 +37,7 @@ dependencies:
     repository: oci://registry-1.docker.io/bitnamicharts
     condition: rabbitmq.enabled
   - name: keycloak
-    version: 14.4.0
+    version: 15.0.5
     repository: oci://registry-1.docker.io/bitnamicharts
     condition: keycloak.enabled
   - name: common
