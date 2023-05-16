@@ -269,6 +269,26 @@ Return the bcrypt password secret name
 {{- end -}}
 {{- end -}}
 
+{{- define "osie.keycloakConfig.secretName" -}}
+{{- printf "%s-env-secret" (include "common.names.dependency.fullname" (dict "chartName" "keycloak" "chartValues" .Values.keycloak "context" $)) }}
+{{- end -}}
+
+{{- define "osie.ui.oauth2IssuerUri" -}}
+{{- if .Values.keycloak.enabled }}
+{{- printf "%s/realms/%s" (include "osie.keycloakUrl" . ) .Values.ui.oauth2.realm }}
+{{- else }}
+{{- required "ui.oauth2.issuerUri is required" .Values.ui.oauth2.issuerUri -}}
+{{- end }}
+{{- end -}}
+
+{{- define "osie.admin.oauth2IssuerUri" -}}
+{{- if .Values.keycloak.enabled }}
+{{- printf "%s/realms/%s" (include "osie.keycloakUrl" . ) .Values.admin.oauth2.realm }}
+{{- else }}
+{{- required "admin.oauth2.issuerUri is required" .Values.admin.oauth2.issuerUri -}}
+{{- end }}
+{{- end -}}
+
 {{/*
 Retrieve key of bcrypt secret key
 */}}
@@ -407,14 +427,6 @@ Bcrypt password
 
 {{- define "osie.keycloakUrl" -}}
 {{- printf "%s://%s" (include "osie.httpScheme" .) (tpl (.Values.keycloak.ingress.hostname | default .Values.global.ingress.hostname) .) -}}
-{{- end -}}
-
-{{- define "osie.defaultIssuer" -}}
-{{- include "osie.keycloakUrl" . }}/realms/{{ .Values.ui.oauth2.realm }}
-{{- end -}}
-
-{{- define "osie.adminIssuer" -}}
-{{- include "osie.keycloakUrl" . }}/realms/{{ .Values.admin.oauth2.realm }}
 {{- end -}}
 
 {{- define "osie.keycloak.auth.secretName" -}}

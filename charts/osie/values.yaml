@@ -68,6 +68,8 @@ ui:
     hostname: ""
   oauth2:
     clientId: "osie-ui"
+    issuerUri: ""
+    # Keycloak Realm name if enabled
     realm: "clients"
   podAnnotations: { }
   podSecurityContext: { }
@@ -112,6 +114,8 @@ admin:
     hostname: ""
   oauth2:
     clientId: "osie-admin"
+    issuerUri: ""
+    # Keycloak Realm name if enabled
     realm: "master"
   podAnnotations: { }
   podSecurityContext: { }

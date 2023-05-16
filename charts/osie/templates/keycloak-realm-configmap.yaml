@@ -1,3 +1,4 @@
+{{- if (and .Values.keycloak.enabled .Values.keycloak.keycloakConfigCli.enabled) }}
 {{- $keycloakContext := (merge dict . .Values.keycloak) -}}
 apiVersion: v1
 kind: ConfigMap
@@ -101,3 +102,4 @@ data:
           - phone
           - offline_access
           - microprofile-jwt
+{{- end }}

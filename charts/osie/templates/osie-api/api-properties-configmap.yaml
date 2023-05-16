@@ -32,10 +32,10 @@ data:
     auth:
       main:
         oauth2:
-          issuer-uri: {{ include "osie.defaultIssuer" . }}
+          issuer-uri: {{ include "osie.ui.oauth2IssuerUri" . }}
       admin:
         oauth2:
-          issuer-uri: {{ include "osie.adminIssuer" . }}
+          issuer-uri: {{ include "osie.admin.oauth2IssuerUri" . }}
     {{- if .Values.sentry.dsn }}
     sentry:
       traces-sample-rate: 1.0
