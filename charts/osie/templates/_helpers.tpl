@@ -436,3 +436,19 @@ Bcrypt password
 {{- printf "%s-keycloak" (include "common.names.fullname" .) }}
 {{- end -}}
 {{- end -}}
+
+{{- define "osie.keycloak.smtp" }}
+{{- if .Values.smtp.host -}}
+smtpServer:
+{{- if .Values.smtp.auth }}
+  password: {{ required ".Values.smtp.password is required" .Values.smtp.password }}
+  user: {{ required ".Values.smtp.user is required" .Values.smtp.user}}
+  auth: true
+{{- end }}
+  starttls: {{ .Values.smtp.starttls }}
+  port: {{ required ".Values.smtp.port is required" .Values.smtp.port }}
+  host: {{ .Values.smtp.host }}
+  from: {{ required ".Values.smtp.from is required" .Values.smtp.from }}
+  fromDisplayName: {{ required ".Values.smtp.fromDisplayName is required" .Values.smtp.fromDisplayName }}
+{{- end -}}
+{{- end}}

@@ -70,7 +70,9 @@ ui:
     clientId: "osie-ui"
     issuerUri: ""
     # Keycloak Realm name if enabled
-    realm: "clients"
+  realm:
+    name: "clients"
+    displayName: "Cloud console"
   podAnnotations: { }
   podSecurityContext: { }
   # fsGroup: 2000
@@ -116,7 +118,9 @@ admin:
     clientId: "osie-admin"
     issuerUri: ""
     # Keycloak Realm name if enabled
-    realm: "master"
+  realm:
+    name: "master"
+    displayName: "Cloud Admin"
   podAnnotations: { }
   podSecurityContext: { }
   # fsGroup: 2000
@@ -152,12 +156,22 @@ license:
   key: ""
 
 encryption:
-  # available options: bcrypt, awskms
+  # available options: bcrypt
   provider: "bcrypt"
   bcrypt:
     password: ""
     existingPasswordSecret: ""
     existingPasswordSecretKey: ""
+
+smtp:
+  host: # smtp.example.com
+  password: # password
+  user: # smtp-username@example.com
+  starttls: false
+  auth: false
+  port: 25
+  from: # support@example.com
+  fromDisplayName: # Example.com
 
 keycloak:
   enabled: true
