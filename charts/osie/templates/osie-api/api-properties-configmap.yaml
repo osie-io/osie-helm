@@ -40,7 +40,18 @@ data:
     sentry:
       traces-sample-rate: 1.0
       dsn: {{ .Values.sentry.dsn }}
-    {{- end}}
+    {{- end }}
+    {{- if .Values.smtp.enabled }}
+    smtp:
+      host: {{ required ".Values.smtp.host is required" .Values.smtp.host }}
+      port: {{ required ".Values.smtp.port is required" .Values.smtp.port }}
+      displayName: {{ .Values.smtp.fromDisplayName }}
+      email: {{ required ".Values.smtp.from  is required" .Values.smtp.from }}
+    {{- if .Values.smtp.auth }}
+      username: {{ required ".Values.smtp.user is required" .Values.smtp.user }}
+      password: {{ required ".Values.smtp.password is required" .Values.smtp.password }}
+    {{- end }}
+    {{- end }}
     management:
       health:
         readinessstate:

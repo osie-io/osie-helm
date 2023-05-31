@@ -438,7 +438,7 @@ Bcrypt password
 {{- end -}}
 
 {{- define "osie.keycloak.smtp" }}
-{{- if .Values.smtp.host -}}
+{{- if .Values.smtp.enabled -}}
 smtpServer:
 {{- if .Values.smtp.auth }}
   password: {{ required ".Values.smtp.password is required" .Values.smtp.password }}
@@ -447,7 +447,7 @@ smtpServer:
 {{- end }}
   starttls: {{ .Values.smtp.starttls }}
   port: {{ required ".Values.smtp.port is required" .Values.smtp.port }}
-  host: {{ .Values.smtp.host }}
+  host: {{ required ".Values.smtp.host is required" .Values.smtp.host }}
   from: {{ required ".Values.smtp.from is required" .Values.smtp.from }}
   fromDisplayName: {{ required ".Values.smtp.fromDisplayName is required" .Values.smtp.fromDisplayName }}
 {{- end -}}

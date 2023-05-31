@@ -164,6 +164,7 @@ encryption:
     existingPasswordSecretKey: ""
 
 smtp:
+  enabled: true
   host: # smtp.example.com
   password: # password
   user: # smtp-username@example.com
