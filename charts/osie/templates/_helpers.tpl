@@ -34,12 +34,17 @@ Return list of mongodb hosts
 {{- define "osie.mongodb.hosts" -}}
 {{- if .Values.mongodb.enabled -}}
     {{- $mongodbfullname := include "osie.mongodb.fullname" . -}}
-    {{- $replicas := .Values.mongodb.replicaCount | int }}
-    {{- $hosts := printf "%s-0.%s-headless" $mongodbfullname $mongodbfullname -}}
-    {{- range $i, $_e := until (sub $replicas 1 | int) }}
-        {{- $hosts = printf "%s,%s-%d.%s-headless" $hosts $mongodbfullname (add $i 1 | int) $mongodbfullname -}}
+
+    {{- if (eq .Values.mongodb.architecture "replicaset") }}
+        {{- $replicas := .Values.mongodb.replicaCount | int }}
+        {{- $hosts := printf "%s-0.%s-headless" $mongodbfullname $mongodbfullname -}}
+        {{- range $i, $_e := until (sub $replicas 1 | int) }}
+            {{- $hosts = printf "%s,%s-%d.%s-headless" $hosts $mongodbfullname (add $i 1 | int) $mongodbfullname -}}
+        {{- end }}
+        {{- print $hosts }}
+    {{- else }}
+        {{- print $mongodbfullname }}
     {{- end }}
-    {{- print $hosts }}
 {{- else -}}
     {{- print (join "," .Values.externalMongodb.hosts)  -}}
 {{- end -}}
@@ -264,6 +269,26 @@ Return the bcrypt password secret name
 {{- end -}}
 {{- end -}}
 
+{{- define "osie.keycloakConfig.secretName" -}}
+{{- printf "%s-env-secret" (include "common.names.dependency.fullname" (dict "chartName" "keycloak" "chartValues" .Values.keycloak "context" $)) }}
+{{- end -}}
+
+{{- define "osie.ui.oauth2IssuerUri" -}}
+{{- if .Values.keycloak.enabled }}
+{{- printf "%s/realms/%s" (include "osie.keycloakUrl" . ) .Values.ui.oauth2.realm }}
+{{- else }}
+{{- required "ui.oauth2.issuerUri is required" .Values.ui.oauth2.issuerUri -}}
+{{- end }}
+{{- end -}}
+
+{{- define "osie.admin.oauth2IssuerUri" -}}
+{{- if .Values.keycloak.enabled }}
+{{- printf "%s/realms/%s" (include "osie.keycloakUrl" . ) .Values.admin.oauth2.realm }}
+{{- else }}
+{{- required "admin.oauth2.issuerUri is required" .Values.admin.oauth2.issuerUri -}}
+{{- end }}
+{{- end -}}
+
 {{/*
 Retrieve key of bcrypt secret key
 */}}
@@ -332,12 +357,17 @@ Bcrypt password
 
       . /opt/osie/scripts/libosie.sh
 
-      info "Waiting for MongoDB replica set to come up"
+      info "Waiting for MongoDB come up"
       for host in ${MONGODB_HOSTS//,/ }; do
             info "Waiting for host $host"
             osie_wait_for_mongodb_connection "mongodb://${MONGODB_USER}:${MONGODB_PASSWORD}@${host}:${MONGODB_PORT}/${MONGODB_DATABASE}"
       done
       info "Database is ready"
+
+      info "Waiting for RabbitMQ come up"
+      osie_wait_for_http_connection "${RABBITMQ_HOST}:15672" 10 3
+      info "RabbitMQ is ready"
+
   env:
     - name: MONGODB_HOSTS
       value: {{ include "osie.mongodb.hosts" . | quote }}
@@ -352,6 +382,8 @@ Bcrypt password
       value: {{ ternary (index .Values.mongodb.auth.usernames 0) .Values.externalMongodb.username .Values.mongodb.enabled | quote }}
     - name: MONGODB_DATABASE
       value: {{ ternary (index .Values.mongodb.auth.databases 0) .Values.externalMongodb.database .Values.mongodb.enabled | quote }}
+    - name: RABBITMQ_HOST
+      value: {{ include "osie.rabbitmq.host" . | quote }}
 {{- end -}}
 
 {{- define "osie.ingressHostname" -}}
@@ -397,14 +429,6 @@ Bcrypt password
 {{- printf "%s://%s" (include "osie.httpScheme" .) (tpl (.Values.keycloak.ingress.hostname | default .Values.global.ingress.hostname) .) -}}
 {{- end -}}
 
-{{- define "osie.defaultIssuer" -}}
-{{- include "osie.keycloakUrl" . }}/realms/{{ .Values.ui.oauth2.realm }}
-{{- end -}}
-
-{{- define "osie.adminIssuer" -}}
-{{- include "osie.keycloakUrl" . }}/realms/{{ .Values.admin.oauth2.realm }}
-{{- end -}}
-
 {{- define "osie.keycloak.auth.secretName" -}}
 {{- if .Values.keycloak.auth.existingSecret -}}
 {{- .Values.keycloak.auth.existingSecret }}
@@ -412,3 +436,19 @@ Bcrypt password
 {{- printf "%s-keycloak" (include "common.names.fullname" .) }}
 {{- end -}}
 {{- end -}}
+
+{{- define "osie.keycloak.smtp" }}
+{{- if .Values.smtp.enabled -}}
+smtpServer:
+{{- if .Values.smtp.auth }}
+  password: {{ required ".Values.smtp.password is required" .Values.smtp.password }}
+  user: {{ required ".Values.smtp.user is required" .Values.smtp.user}}
+  auth: true
+{{- end }}
+  starttls: {{ .Values.smtp.starttls }}
+  port: {{ required ".Values.smtp.port is required" .Values.smtp.port }}
+  host: {{ required ".Values.smtp.host is required" .Values.smtp.host }}
+  from: {{ required ".Values.smtp.from is required" .Values.smtp.from }}
+  fromDisplayName: {{ required ".Values.smtp.fromDisplayName is required" .Values.smtp.fromDisplayName }}
+{{- end -}}
+{{- end}}

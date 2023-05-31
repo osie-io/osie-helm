@@ -1,3 +1,4 @@
+{{- if (and .Values.keycloak.enabled .Values.keycloak.keycloakConfigCli.enabled) }}
 {{- $keycloakContext := (merge dict . .Values.keycloak) -}}
 apiVersion: v1
 kind: ConfigMap
@@ -8,10 +9,10 @@ metadata:
     {{- include "osie.labels" $keycloakContext | nindent 4 }}
 data:
   clients.yml: |
-    id: {{ .Values.ui.oauth2.realm }}
-    realm: {{ .Values.ui.oauth2.realm }}
-    displayName: Osie
-    displayNameHtml: <div class="kc-logo-text"><span>Osie</span></div>
+    id: {{ .Values.ui.realm.name }}
+    realm: {{ .Values.ui.realm.name }}
+    displayName: {{ .Values.ui.realm.displayName }}
+    displayNameHtml: <div class="kc-logo-text"><span>{{ .Values.ui.realm.displayName }}</span></div>
     registrationAllowed: true
     registrationEmailAsUsername: true
     accessTokenLifespan: 3600
@@ -55,11 +56,12 @@ data:
           - phone
           - offline_access
           - microprofile-jwt
+    {{- include "osie.keycloak.smtp" . | nindent 4 }}
   admins.yml: |
-    id: {{ .Values.admin.oauth2.realm }}
-    realm: {{ .Values.admin.oauth2.realm }}
-    displayName: Osie Admin
-    displayNameHtml: <div class="kc-logo-text"><span>Osie Admin</span></div>
+    id: {{ .Values.admin.realm.name }}
+    realm: {{ .Values.admin.realm.name }}
+    displayName: {{ .Values.admin.realm.displayName }}
+    displayNameHtml: <div class="kc-logo-text"><span>{{ .Values.admin.realm.displayName }}</span></div>
     accessTokenLifespan: 3600
     accessTokenLifespanForImplicitFlow: 3600
     registrationEmailAsUsername: true
@@ -101,3 +103,5 @@ data:
           - phone
           - offline_access
           - microprofile-jwt
+    {{- include "osie.keycloak.smtp" . | nindent 4 }}
+{{- end }}

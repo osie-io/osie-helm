@@ -34,17 +34,13 @@ spec:
           image: "{{ $uiContext.image.repository }}:{{ $uiContext.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ $uiContext.image.pullPolicy }}
           env:
-            - name: KEYCLOAK_URL
-              value: {{ include "osie.keycloakUrl" . }}
-            - name: KEYCLOAK_REALM
-              value: {{ .Values.ui.oauth2.realm }}
-            - name: KEYCLOAK_CLIENTID
+            - name: OSIE_OAUTH2_ISSUER
+              value: {{ include "osie.ui.oauth2IssuerUri" . }}
+            - name: OSIE_OAUTH2_CLIENT_ID
               value: {{ .Values.ui.oauth2.clientId }}
-            - name: BASE_URL
-              value: {{ include "osie.uiUrl" . }}
-            - name: API_HOST
+            - name: OSIE_API_HOST
               value: https://{{ include "osie.ingressHostname" $apiContext }}
-            - name: API_PREFIX
+            - name: OSIE_API_PREFIX
               value: {{ tpl $apiContext.ingress.path $apiContext }}
           ports:
             - name: http

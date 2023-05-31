@@ -15,7 +15,7 @@ data:
       license:
         key: {{ .Values.license.key }}
       self:
-        api-base-url: https://{{ include "osie.ingressHostname" $apiContext }}
+        api-base-url: https://{{ include "osie.ingressHostname" $apiContext }}{{ $apiContext.httpContext }}
         ui-base-url: {{ include "osie.uiUrl" . }}
     spring:
       data:
@@ -32,15 +32,26 @@ data:
     auth:
       main:
         oauth2:
-          issuer-uri: {{ include "osie.defaultIssuer" . }}
+          issuer-uri: {{ include "osie.ui.oauth2IssuerUri" . }}
       admin:
         oauth2:
-          issuer-uri: {{ include "osie.adminIssuer" . }}
+          issuer-uri: {{ include "osie.admin.oauth2IssuerUri" . }}
     {{- if .Values.sentry.dsn }}
     sentry:
       traces-sample-rate: 1.0
       dsn: {{ .Values.sentry.dsn }}
-    {{- end}}
+    {{- end }}
+    {{- if .Values.smtp.enabled }}
+    smtp:
+      host: {{ required ".Values.smtp.host is required" .Values.smtp.host }}
+      port: {{ required ".Values.smtp.port is required" .Values.smtp.port }}
+      displayName: {{ .Values.smtp.fromDisplayName }}
+      email: {{ required ".Values.smtp.from  is required" .Values.smtp.from }}
+    {{- if .Values.smtp.auth }}
+      username: {{ required ".Values.smtp.user is required" .Values.smtp.user }}
+      password: {{ required ".Values.smtp.password is required" .Values.smtp.password }}
+    {{- end }}
+    {{- end }}
     management:
       health:
         readinessstate:

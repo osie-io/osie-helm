@@ -7,7 +7,7 @@ metadata:
   labels:
     {{- include "osie.labels" $adminContext | nindent 4 }}
 spec:
-  replicas: {{ $adminContext.replicaCount }}
+  replicas: {{ $adminContext.replicaCount | default 1 }}
   selector:
     matchLabels:
       {{- include "osie.selectorLabels" $adminContext | nindent 6 }}
@@ -33,12 +33,10 @@ spec:
           image: "{{ $adminContext.image.repository }}:{{ $adminContext.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ $adminContext.image.pullPolicy }}
           env:
-            - name: OSIE_CLIENT_ID
+            - name: OSIE_OAUTH2_CLIENT_ID
               value: {{ $adminContext.oauth2.clientId }}
-            - name: OSIE_KEYCLOAK_URL
-              value: {{ include "osie.keycloakUrl" . }}
-            - name: OSIE_REALM
-              value: {{ $adminContext.oauth2.realm }}
+            - name: OSIE_OAUTH2_ISSUER
+              value: {{ include "osie.admin.oauth2IssuerUri" . }}
             - name: OSIE_REDIRECT_URI
               value: {{ include "osie.adminUrl" . }}/
             - name: OSIE_API_URL

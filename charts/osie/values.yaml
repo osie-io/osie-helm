@@ -15,7 +15,7 @@ global:
 
 api:
   component: "api"
-  replicaCount: 2
+  replicaCount: 1
   image:
     repository: ghcr.io/osie-io/osie-api
     pullPolicy: Always
@@ -57,7 +57,7 @@ api:
 
 ui:
   component: "ui"
-  replicaCount: 2
+  replicaCount: 1
   image:
     repository: ghcr.io/osie-io/osie-ui
     pullPolicy: Always
@@ -68,7 +68,11 @@ ui:
     hostname: ""
   oauth2:
     clientId: "osie-ui"
-    realm: "clients"
+    issuerUri: ""
+    # Keycloak Realm name if enabled
+  realm:
+    name: "clients"
+    displayName: "Cloud console"
   podAnnotations: { }
   podSecurityContext: { }
   # fsGroup: 2000
@@ -101,7 +105,7 @@ ui:
 
 admin:
   component: "admin"
-  replicaCount: 2
+  replicaCount: 1
   image:
     repository: ghcr.io/osie-io/osie-admin
     pullPolicy: Always
@@ -112,7 +116,11 @@ admin:
     hostname: ""
   oauth2:
     clientId: "osie-admin"
-    realm: "master"
+    issuerUri: ""
+    # Keycloak Realm name if enabled
+  realm:
+    name: "master"
+    displayName: "Cloud Admin"
   podAnnotations: { }
   podSecurityContext: { }
   # fsGroup: 2000
@@ -148,16 +156,27 @@ license:
   key: ""
 
 encryption:
-  # available options: bcrypt, awskms
+  # available options: bcrypt
   provider: "bcrypt"
   bcrypt:
     password: ""
     existingPasswordSecret: ""
     existingPasswordSecretKey: ""
 
+smtp:
+  enabled: true
+  host: # smtp.example.com
+  password: # password
+  user: # smtp-username@example.com
+  starttls: false
+  auth: false
+  port: 25
+  from: # support@example.com
+  fromDisplayName: # Example.com
+
 keycloak:
   enabled: true
-  replicaCount: 3
+  # replicaCount: 3
   component: "keycloak"
   ingress:
     hostname: "auth.{{ .Values.global.ingress.hostname }}"
@@ -167,18 +186,14 @@ keycloak:
     adminUser: osie_admin
   postgresql:
     enabled: true
-    architecture: replication
+    # architecture: replication
     auth:
       username: osie_keycloak
       database: osie_keycloak
-      replicationUsername: osie_pg_repl
+      # replicationUsername: osie_pg_repl
 
   keycloakConfigCli:
     enabled: true
-    command:
-      - java
-      - -jar
-      - /opt/bitnami/keycloak-config-cli/keycloak-config-cli-21.0.1.jar
     existingConfigmap: '{{ include "osie.keycloakRealmConfigMap" . }}'
 
   initContainers: |-
@@ -214,6 +229,7 @@ externalOpenid:
 
 redis:
   enabled: true
+  architecture: "standalone"
 
 externalRedis:
   host: ""
@@ -224,8 +240,8 @@ externalRedis:
 
 mongodb:
   enabled: true
-  architecture: replicaset
-  replicaCount: 3
+  # architecture: replicaset
+  # replicaCount: 3
   auth:
     usernames:
       - osie
