@@ -1,5 +1,7 @@
 {{- $adminContext := (merge dict . .Values.admin) -}}
 {{- $apiContext := (merge dict . .Values.api) -}}
+{{- $accountConsoleUrl := (include "osie.admin.accountConsoleUrl" $adminContext) -}}
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -41,6 +43,10 @@ spec:
               value: {{ include "osie.adminUrl" . }}/
             - name: OSIE_API_URL
               value: {{ include "osie.apiUrl" .}}
+            {{- if $accountConsoleUrl }}
+            - name: OSIE_OAUTH2_USER_ACCOUNT_CONSOLE
+              value: {{ $accountConsoleUrl }}
+            {{- end }}
           ports:
             - name: http
               containerPort: 80
