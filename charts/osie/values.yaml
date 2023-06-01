@@ -68,7 +68,8 @@ ui:
     hostname: ""
   oauth2:
     clientId: "osie-ui"
-    issuerUri: ""
+    issuerUri:
+    accountConsoleUrl:
     # Keycloak Realm name if enabled
   realm:
     name: "clients"
@@ -116,7 +117,8 @@ admin:
     hostname: ""
   oauth2:
     clientId: "osie-admin"
-    issuerUri: ""
+    issuerUri:
+    accountConsoleUrl:
     # Keycloak Realm name if enabled
   realm:
     name: "master"

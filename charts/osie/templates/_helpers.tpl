@@ -274,7 +274,7 @@ Return the bcrypt password secret name
 {{- end -}}
 
 {{- define "osie.ui.oauth2IssuerUri" -}}
-{{- if (and .Values.keycloak.enabled .Values.keycloak.keycloakConfigCli.enabled) }}
+{{- if (and .Values.keycloak.enabled (not .Values.ui.oauth2.issuerUri)) }}
 {{- printf "%s/realms/%s" (include "osie.keycloakUrl" . ) .Values.ui.realm.name }}
 {{- else }}
 {{- required "ui.oauth2.issuerUri is required" .Values.ui.oauth2.issuerUri -}}
@@ -282,7 +282,7 @@ Return the bcrypt password secret name
 {{- end -}}
 
 {{- define "osie.admin.oauth2IssuerUri" -}}
-{{- if (and .Values.keycloak.enabled .Values.keycloak.keycloakConfigCli.enabled) }}
+{{- if (and .Values.keycloak.enabled (not .Values.admin.oauth2.issuerUri)) }}
 {{- printf "%s/realms/%s" (include "osie.keycloakUrl" . ) .Values.admin.realm.name }}
 {{- else }}
 {{- required "admin.oauth2.issuerUri is required" .Values.admin.oauth2.issuerUri -}}
@@ -452,3 +452,19 @@ smtpServer:
   fromDisplayName: {{ required ".Values.smtp.fromDisplayName is required" .Values.smtp.fromDisplayName }}
 {{- end -}}
 {{- end}}
+
+{{- define "osie.ui.accountConsoleUrl" }}
+{{- if (and .Values.keycloak.enabled (not .Values.ui.oauth2.accountConsoleUrl)) }}
+{{- printf "%s/account" (include "osie.ui.oauth2IssuerUri" .) }}
+{{- else }}
+{{- .Values.ui.oauth2.accountConsoleUrl }}
+{{- end }}
+{{- end }}
+
+{{- define "osie.admin.accountConsoleUrl" }}
+{{- if (and .Values.keycloak.enabled (not .Values.admin.oauth2.accountConsoleUrl))}}
+{{- printf "%s/account" (include "osie.admin.oauth2IssuerUri" .)}}
+{{- else }}
+{{ .Values.admin.oauth2.accountConsoleUrl}}
+{{- end }}
+{{- end }}
