@@ -465,6 +465,6 @@ smtpServer:
 {{- if (and .Values.keycloak.enabled (not .Values.admin.oauth2.accountConsoleUrl))}}
 {{- printf "%s/account" (include "osie.admin.oauth2IssuerUri" .)}}
 {{- else }}
-{{ .Values.admin.oauth2.accountConsoleUrl}}
+{{- .Values.admin.oauth2.accountConsoleUrl}}
 {{- end }}
 {{- end }}
