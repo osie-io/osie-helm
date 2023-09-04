@@ -61,7 +61,7 @@ data:
       endpoints:
         web:
           exposure:
-            include: "health"
+            include: "*"
       server:
         port: 8081
     server:
