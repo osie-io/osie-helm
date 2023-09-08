@@ -281,12 +281,20 @@ Return the bcrypt password secret name
 {{- end }}
 {{- end -}}
 
+{{- define "osie.ui.oauth2ClientId" -}}
+{{- required "ui.oauth2.clientId is required" .Values.ui.oauth2.clientId }}
+{{- end -}}
+
 {{- define "osie.admin.oauth2IssuerUri" -}}
 {{- if (and .Values.keycloak.enabled (not .Values.admin.oauth2.issuerUri)) }}
 {{- printf "%s/realms/%s" (include "osie.keycloakUrl" . ) .Values.admin.realm.name }}
 {{- else }}
 {{- required "admin.oauth2.issuerUri is required" .Values.admin.oauth2.issuerUri -}}
 {{- end }}
+{{- end -}}
+
+{{- define "osie.admin.oauth2ClientId" -}}
+{{- required "admin.oauth2.clientId is required" .Values.admin.oauth2.clientId }}
 {{- end -}}
 
 {{/*

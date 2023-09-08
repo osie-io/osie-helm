@@ -33,9 +33,11 @@ data:
       main:
         oauth2:
           issuer-uri: {{ include "osie.ui.oauth2IssuerUri" . }}
+          client-id: {{ include "osie.ui.oauth2ClientId" . }}
       admin:
         oauth2:
           issuer-uri: {{ include "osie.admin.oauth2IssuerUri" . }}
+          client-id: {{ include "osie.admin.oauth2ClientId" . }}
     {{- if .Values.sentry.dsn }}
     sentry:
       traces-sample-rate: 1.0
