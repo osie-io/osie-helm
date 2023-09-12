@@ -36,7 +36,13 @@ spec:
           imagePullPolicy: {{ $adminContext.image.pullPolicy }}
           env:
             - name: OSIE_OAUTH2_CLIENT_ID
-              value: {{ $adminContext.oauth2.clientId }}
+              value: {{ include "osie.oauth2ClientId" $adminContext }}
+            - name: OSIE_OAUTH2_AUDIENCE
+              value: {{ include "osie.oauth2Audience" $adminContext | quote }}
+            - name: OSIE_OAUTH2_SCOPE
+              value: {{ include "osie.oauth2Scope" $adminContext | quote }}
+            - name: OSIE_OAUTH2_LOGOUT_URL
+              value: {{ include "osie.oauth2LogoutUrl" $adminContext | quote }}
             - name: OSIE_OAUTH2_ISSUER
               value: {{ include "osie.admin.oauth2IssuerUri" . }}
             - name: OSIE_REDIRECT_URI
