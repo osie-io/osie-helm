@@ -12,6 +12,11 @@ global:
     ingressClassName: ""
     secrets: []
     tls: false
+  oauth2:
+    issuerUri:
+    clientId:
+    audience:
+    logoutUrl:
 
 api:
   component: "api"
@@ -70,6 +75,9 @@ ui:
     clientId: "osie-ui"
     issuerUri:
     accountConsoleUrl:
+    audience:
+    logoutUrl:
+    scope: "openid profile email offline_access"
     # Keycloak Realm name if enabled
   realm:
     name: "clients"
@@ -119,6 +127,9 @@ admin:
     clientId: "osie-admin"
     issuerUri:
     accountConsoleUrl:
+    audience:
+    logoutUrl:
+    scope: "openid profile email offline_access"
     # Keycloak Realm name if enabled
   realm:
     name: "master"

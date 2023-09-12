@@ -37,7 +37,13 @@ spec:
             - name: OSIE_OAUTH2_ISSUER
               value: {{ include "osie.ui.oauth2IssuerUri" . }}
             - name: OSIE_OAUTH2_CLIENT_ID
-              value: {{ .Values.ui.oauth2.clientId }}
+              value: {{ include "osie.oauth2ClientId" $uiContext }}
+            - name: OSIE_OAUTH2_AUDIENCE
+              value: {{ include "osie.oauth2Audience" $uiContext | quote }}
+            - name: OSIE_OAUTH2_SCOPE
+              value: {{ include "osie.oauth2Scope" $uiContext | quote }}
+            - name: OSIE_OAUTH2_LOGOUT_URL
+              value: {{ include "osie.oauth2LogoutUrl" $uiContext | quote }}
             - name: OSIE_API_HOST
               value: https://{{ include "osie.ingressHostname" $apiContext }}
             - name: OSIE_API_PREFIX

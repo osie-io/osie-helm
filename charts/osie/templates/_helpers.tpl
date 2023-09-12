@@ -274,27 +274,59 @@ Return the bcrypt password secret name
 {{- end -}}
 
 {{- define "osie.ui.oauth2IssuerUri" -}}
-{{- if (and .Values.keycloak.enabled (not .Values.ui.oauth2.issuerUri)) }}
+{{- if (and .Values.keycloak.enabled) }}
 {{- printf "%s/realms/%s" (include "osie.keycloakUrl" . ) .Values.ui.realm.name }}
+{{- else }}
+{{- if .Values.global.oauth2.issuerUri }}
+{{- .Values.global.oauth2.issuerUri }}
 {{- else }}
 {{- required "ui.oauth2.issuerUri is required" .Values.ui.oauth2.issuerUri -}}
 {{- end }}
-{{- end -}}
-
-{{- define "osie.ui.oauth2ClientId" -}}
-{{- required "ui.oauth2.clientId is required" .Values.ui.oauth2.clientId }}
+{{- end }}
 {{- end -}}
 
 {{- define "osie.admin.oauth2IssuerUri" -}}
 {{- if (and .Values.keycloak.enabled (not .Values.admin.oauth2.issuerUri)) }}
 {{- printf "%s/realms/%s" (include "osie.keycloakUrl" . ) .Values.admin.realm.name }}
 {{- else }}
+{{- if .Values.global.oauth2.issuerUri -}}
+{{- .Values.global.oauth2.issuerUri }}
+{{- else -}}
 {{- required "admin.oauth2.issuerUri is required" .Values.admin.oauth2.issuerUri -}}
+{{- end }}
 {{- end }}
 {{- end -}}
 
-{{- define "osie.admin.oauth2ClientId" -}}
-{{- required "admin.oauth2.clientId is required" .Values.admin.oauth2.clientId }}
+{{- define "osie.oauth2ClientId" -}}
+{{- if .Values.global.oauth2.clientId}}
+{{ .Values.global.oauth2.clientId }}
+{{- else }}
+{{- required "oauth2 clientId is required" .oauth2.clientId }}
+{{- end }}
+{{- end -}}
+
+{{- define "osie.oauth2Audience" -}}
+{{- if .Values.global.oauth2.audience -}}
+{{ .Values.global.oauth2.audience }}
+{{- else -}}
+{{- .oauth2.audience }}
+{{- end }}
+{{- end -}}
+
+{{- define "osie.oauth2LogoutUrl" -}}
+{{- if .Values.global.oauth2.logoutUrl -}}
+{{ .Values.global.oauth2.logoutUrl }}
+{{- else -}}
+{{- .oauth2.logoutUrl }}
+{{- end -}}
+{{- end -}}
+
+{{- define "osie.oauth2Scope" -}}
+{{- if .Values.global.oauth2.scope -}}
+{{ .Values.global.oauth2.scope }}
+{{- else -}}
+{{- .oauth2.scope }}
+{{- end -}}
 {{- end -}}
 
 {{/*
