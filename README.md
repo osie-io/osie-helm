@@ -1,5 +1,10 @@
 ## Helm chart for deploying [osie.io](https://osie.io) - the OpenStack dashboard and billing system
 By default this chart also installs [Keycloak](https://www.keycloak.org) which is the default Identity provider that's recommended with osie. It's being deployed by the subchart  [bitnami/keycloak](https://github.com/bitnami/charts/tree/main/bitnami/keycloak/) 
+
+### Full documentation
+
+[Osie installation documentation](https://osie.io/docs/operators-manual/kubernetes-install/)
+
 ### Add the Helm repository
 ```
 helm repo add osie https://helm.osie.io
