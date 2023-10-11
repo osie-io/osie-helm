@@ -243,6 +243,10 @@ externalOpenid:
 redis:
   enabled: true
   architecture: "standalone"
+  master:
+    disableCommands: []
+  replica:
+    disableCommands: []
 
 externalRedis:
   host: ""
