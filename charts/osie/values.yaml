@@ -264,6 +264,12 @@ mongodb:
       - osie
     databases:
       - osie
+  readinessProbe:
+    periodSeconds: 30
+    timeoutSeconds: 15
+  livenessProbe:
+    periodSeconds: 45
+    timeoutSeconds: 15
 
 externalMongodb:
   hosts: ""
