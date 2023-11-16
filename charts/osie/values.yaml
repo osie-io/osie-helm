@@ -243,6 +243,10 @@ externalOpenid:
 redis:
   enabled: true
   architecture: "standalone"
+  master:
+    disableCommands: []
+  replica:
+    disableCommands: []
 
 externalRedis:
   host: ""
@@ -260,6 +264,12 @@ mongodb:
       - osie
     databases:
       - osie
+  readinessProbe:
+    periodSeconds: 30
+    timeoutSeconds: 15
+  livenessProbe:
+    periodSeconds: 45
+    timeoutSeconds: 15
 
 externalMongodb:
   hosts: ""
