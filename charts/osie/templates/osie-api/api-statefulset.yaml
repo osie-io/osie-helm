@@ -83,10 +83,11 @@ spec:
               protocol: TCP
           livenessProbe:
             httpGet:
-              path: /actuator/health/liveness
+              path: /actuator/health
               port: actuator
             initialDelaySeconds: 30
             periodSeconds: 20
+            failureThreshold: 5
           readinessProbe:
             httpGet:
               path: /actuator/health/readiness

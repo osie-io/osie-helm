@@ -62,6 +62,10 @@ data:
           enabled: true
         livenessstate:
           enabled: true
+      endpoint:
+        health:
+          show-components: always
+          show-details: always
       endpoints:
         web:
           exposure:
