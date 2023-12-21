@@ -2,6 +2,38 @@ apiVersion: v1
 entries:
   osie:
   - apiVersion: v2
+    appVersion: 23.12.1
+    created: "2023-12-21T12:55:10.815034788Z"
+    dependencies:
+    - condition: mongodb.enabled
+      name: mongodb
+      repository: oci://registry-1.docker.io/bitnamicharts
+      version: 13.9.4
+    - condition: redis.enabled
+      name: redis
+      repository: oci://registry-1.docker.io/bitnamicharts
+      version: 17.10.1
+    - condition: rabbitmq.enabled
+      name: rabbitmq
+      repository: oci://registry-1.docker.io/bitnamicharts
+      version: 11.13.0
+    - condition: keycloak.enabled
+      name: keycloak
+      repository: oci://registry-1.docker.io/bitnamicharts
+      version: 15.0.5
+    - name: common
+      repository: oci://registry-1.docker.io/bitnamicharts
+      tags:
+      - bitnami-common
+      version: 2.x.x
+    description: Deploy Osie into Kubernetes
+    digest: 6b2d672636b6252fb74f774a7e5b9d126acb2f95816816ae939800b6e29f5c2a
+    name: osie
+    type: application
+    urls:
+    - https://github.com/osie-io/osie-helm/releases/download/osie-23.12.1/osie-23.12.1.tgz
+    version: 23.12.1
+  - apiVersion: v2
     appVersion: 23.12.0
     created: "2023-12-07T09:46:51.53036514Z"
     dependencies:
@@ -995,6 +1027,22 @@ entries:
     version: 23.1.0-rc1
   osie-notifier:
   - apiVersion: v2
+    appVersion: 23.12.1
+    created: "2023-12-21T12:55:11.030847905Z"
+    dependencies:
+    - name: common
+      repository: oci://registry-1.docker.io/bitnamicharts
+      tags:
+      - bitnami-common
+      version: 2.x.x
+    description: Deploy Osie Notifier into Kubernetes
+    digest: aa948e1f47fa724a8bbfd8cedeb263624c65bea64625337aacaf442261662a50
+    name: osie-notifier
+    type: application
+    urls:
+    - https://github.com/osie-io/osie-helm/releases/download/osie-notifier-23.12.1/osie-notifier-23.12.1.tgz
+    version: 23.12.1
+  - apiVersion: v2
     appVersion: 23.12.0
     created: "2023-12-07T09:46:51.699155169Z"
     dependencies:
@@ -1426,4 +1474,4 @@ entries:
     urls:
     - https://github.com/osie-io/osie-helm/releases/download/osie-notifier-23.1.0-rc1/osie-notifier-23.1.0-rc1.tgz
     version: 23.1.0-rc1
-generated: "2023-12-07T09:46:51.699587465Z"
+generated: "2023-12-21T12:55:11.031308713Z"
