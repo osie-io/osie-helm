@@ -3,7 +3,9 @@ Common labels
 */}}
 {{- define "osie.labels" -}}
 {{include "common.labels.standard" . }}
+{{- if .component }}
 app.kubernetes.io/component: {{ include "common.names.name" . }}-{{ .component }}
+{{- end }}
 {{- end -}}
 
 {{/*
