@@ -299,6 +299,18 @@ Return the bcrypt password secret name
 {{- end }}
 {{- end -}}
 
+{{- define "osie.adminApi.oauth2IssuerUri" -}}
+{{- if (and .Values.keycloak.enabled (not .Values.adminApi.oauth2.issuerUri)) }}
+{{- printf "%s/realms/%s" (include "osie.keycloakUrl" . ) .Values.admin.realm.name }}
+{{- else }}
+{{- if .Values.global.oauth2.issuerUri -}}
+{{- .Values.global.oauth2.issuerUri }}
+{{- else -}}
+{{- required "adminApi.oauth2.issuerUri is required" .Values.adminApi.oauth2.issuerUri -}}
+{{- end }}
+{{- end }}
+{{- end -}}
+
 {{- define "osie.oauth2ClientId" -}}
 {{- if .Values.global.oauth2.clientId}}
 {{ .Values.global.oauth2.clientId }}
@@ -464,7 +476,7 @@ Bcrypt password
 {{- end -}}
 
 {{- define "osie.apiUrl" -}}
-{{- printf "%s://%s%s" (include "osie.httpScheme" .) (.Values.api.ingress.hostname | default .Values.global.ingress.hostname) (tpl .Values.api.ingress.path .) -}}
+{{- printf "%s://%s%s" (include "osie.httpScheme" .) (.Values.api.ingress.hostname | default .Values.global.ingress.hostname) "/api-v1" -}}
 {{- end -}}
 
 {{- define "osie.keycloakUrl" -}}

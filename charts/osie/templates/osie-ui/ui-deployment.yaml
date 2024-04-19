@@ -47,7 +47,7 @@ spec:
             - name: OSIE_API_HOST
               value: https://{{ include "osie.ingressHostname" $apiContext }}
             - name: OSIE_API_PREFIX
-              value: {{ tpl $apiContext.ingress.path $apiContext }}
+              value: /api-v1
             {{- if $accountConsoleUrl }}
             - name: OSIE_OAUTH2_USER_ACCOUNT_CONSOLE
               value: {{ $accountConsoleUrl }}
