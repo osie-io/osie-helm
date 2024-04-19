@@ -1,6 +1,7 @@
 {{- $apiContext := (merge dict . .Values.api) -}}
 {{- $uiContext := (merge dict . .Values.ui) -}}
 {{- $adminContext := (merge dict . .Values.admin) -}}
+{{- $adminApiContext := (merge dict . .Values.adminApi) -}}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -40,6 +41,10 @@ data:
         oauth2:
           issuer-uri: {{ include "osie.admin.oauth2IssuerUri" . }}
           client-id: {{ include "osie.oauth2ClientId" $adminContext }}
+      admin-api:
+        oauth2:
+          issuer-uri: {{ include "osie.adminApi.oauth2IssuerUri" . }}
+          client-id: {{ include "osie.oauth2ClientId" $adminApiContext}}
     {{- if .Values.sentry.dsn }}
     sentry:
       traces-sample-rate: 1.0
@@ -74,5 +79,3 @@ data:
         port: 8081
     server:
       port: 8080
-      servlet:
-        context-path: {{ $apiContext.httpContext }}

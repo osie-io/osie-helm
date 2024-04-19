@@ -24,9 +24,11 @@ api:
   image:
     repository: ghcr.io/osie-io/osie-api
     pullPolicy: Always
-  httpContext: /api-v1
   ingress:
-    path: "{{ .Values.api.httpContext }}"
+    paths:
+      - /api-v1
+      - /admin_api/v1
+      - /v3/api-docs
     pathType: Prefix
     servicePort: http
     hostname: ""
@@ -59,6 +61,11 @@ api:
   nodeSelector: { }
   tolerations: [ ]
   affinity: { }
+
+adminApi:
+  oauth2:
+    clientId: "osie-admin-api"
+    issuerUri:
 
 ui:
   component: "ui"
