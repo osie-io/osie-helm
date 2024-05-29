@@ -85,7 +85,9 @@ ui:
     audience:
     logoutUrl:
     scope: "openid profile email offline_access"
-    # Keycloak Realm name if enabled
+    pkce:
+      enabled: true
+  # Keycloak Realm name if enabled
   realm:
     name: "clients"
     displayName: "Cloud console"
@@ -137,7 +139,9 @@ admin:
     audience:
     logoutUrl:
     scope: "openid profile email offline_access"
-    # Keycloak Realm name if enabled
+    pkce:
+      enabled: true
+  # Keycloak Realm name if enabled
   realm:
     name: "master"
     displayName: "Cloud Admin"
