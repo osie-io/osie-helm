@@ -74,6 +74,9 @@ spec:
             - name: osie-api-config
               mountPath: /opt/osie/api/application.yml
               subPath: application.yml
+            {{- if $apiContext.extraVolumeMounts }}
+            {{- include "common.tplvalues.render" (dict "value" $apiContext.extraVolumeMounts "context" $) | nindent 12 }}
+            {{- end }}
           ports:
             - name: http
               containerPort: 8080
@@ -100,6 +103,9 @@ spec:
         - name: osie-api-config
           configMap:
             name: {{ printf "%s-config" (include "osie.componentName" $apiContext) }}
+        {{- if $apiContext.extraVolumes }}
+        {{- include "common.tplvalues.render" (dict "value" $apiContext.extraVolumes "context" $) | nindent 8 }}
+        {{- end }}
       {{- with $apiContext.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
