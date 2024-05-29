@@ -61,6 +61,16 @@ api:
   nodeSelector: { }
   tolerations: [ ]
   affinity: { }
+  ## @param api.extraVolumes Optionally specify extra list of additional volumes for osie-api
+  ## Example
+  ## - name: osie-extra-volume
+  ##   emptyDir: {}
+  extraVolumes: []
+  ## @param api.extraVolumeMounts Optionally specify extra list of additional volumeMounts for osie-api
+  ## Example
+  ## - name: osie-extra-volume
+  ##   mountPath: /opt/osie/extra-volume
+  extraVolumeMounts: []
 
 adminApi:
   oauth2:
