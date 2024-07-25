@@ -49,7 +49,7 @@ spec:
                   key: {{ include "osie.bcrypt.secretKey" $apiContext }}
             {{- end }}
             {{- if include "osie.redis.auth.enabled" $apiContext }}
-            - name: SPRING_REDIS_PASSWORD
+            - name: SPRING_DATA_REDIS_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: {{ include "osie.redis.secretName" $apiContext }}

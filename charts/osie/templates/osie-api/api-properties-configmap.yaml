@@ -25,9 +25,8 @@ data:
         redis:
           repositories:
             enabled: false
-      redis:
-        host: {{ include "osie.redis.host" . }}
-        port: {{ include "osie.redis.port" . }}
+          host: {{ include "osie.redis.host" . }}
+          port: {{ include "osie.redis.port" . }}
       rabbitmq:
         host: {{ include "osie.rabbitmq.host" . }}
         port: {{ include "osie.rabbitmq.port" . }}
