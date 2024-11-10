@@ -21,7 +21,7 @@ spec:
       labels:
         {{- include "osie.labels" $apiContext | nindent 8 }}
     spec:
-      {{- with $apiContext.imagePullSecrets }}
+      {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
