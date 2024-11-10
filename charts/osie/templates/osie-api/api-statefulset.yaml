@@ -70,6 +70,9 @@ spec:
               value: "mongodb://$(MONGODB_USER):$(MONGODB_PASSWORD)@$(MONGODB_HOSTS)/$(MONGODB_DATABASE)"
             - name: SPRING_DATA_MONGODB_DATABASE
               value: "$(MONGODB_DATABASE)"
+            {{- if $apiContext.extraEnvVars }}
+            {{- include "common.tplvalues.render" (dict "value" $apiContext.extraEnvVars "context" $) | nindent 12 }}
+            {{- end }}
           volumeMounts:
             - name: osie-api-config
               mountPath: /opt/osie/api/application.yml
