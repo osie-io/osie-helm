@@ -18,7 +18,7 @@ data:
       license:
         key: {{ .Values.license.key }}
       self:
-        api-base-url: https://{{ include "osie.ingressHostname" $apiContext }}{{ $apiContext.httpContext }}
+        api-base-url: {{ include "osie.httpScheme" $apiContext }}://{{ include "osie.ingressHostname" $apiContext }}{{ $apiContext.httpContext }}
         ui-base-url: {{ include "osie.uiUrl" . }}
     spring:
       data:
