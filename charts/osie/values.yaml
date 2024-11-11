@@ -71,6 +71,13 @@ api:
   ## - name: osie-extra-volume
   ##   mountPath: /opt/osie/extra-volume
   extraVolumeMounts: []
+  ## @param api.extraEnvVars Extra environment variables to be set on osie-api container
+  ## Example:
+  ## extraEnvVars:
+  ##   - name: FOO
+  ##     value: "bar"
+  ##
+  extraEnvVars: []
 
 adminApi:
   oauth2:
@@ -256,6 +263,10 @@ keycloak:
   extraEnvVars:
     - name: KEYCLOAK_EXTRA_ARGS
       value: "--features=preview"
+    - name: KEYCLOAK_PRODUCTION
+      value: "true"
+    - name: KEYCLOAK_PROXY
+      value: "edge"
 
 externalOpenid:
   issuer: ""

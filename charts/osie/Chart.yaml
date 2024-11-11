@@ -15,7 +15,7 @@ type: application
 # This is the chart version. This version number should be incremented each time you make changes
 # to the chart and its templates, including the app version.
 # Versions are expected to follow Semantic Versioning (https://semver.org/)
-version: 24.10.0
+version: 24.10.1
 
 # This is the version number of the application being deployed. This version number should be
 # incremented each time you make changes to the application. Versions are not expected to
@@ -25,19 +25,19 @@ appVersion: 24.10.0
 
 dependencies:
   - name: mongodb
-    version: 13.9.4
+    version: 14.13.0
     repository: oci://registry-1.docker.io/bitnamicharts
     condition: mongodb.enabled
   - name: redis
     repository: oci://registry-1.docker.io/bitnamicharts
-    version: 17.10.1
+    version: 20.2.1
     condition: redis.enabled
   - name: rabbitmq
-    version: 11.13.0
+    version: 14.7.0
     repository: oci://registry-1.docker.io/bitnamicharts
     condition: rabbitmq.enabled
   - name: keycloak
-    version: 15.0.5
+    version: 16.1.7
     repository: oci://registry-1.docker.io/bitnamicharts
     condition: keycloak.enabled
   - name: common
