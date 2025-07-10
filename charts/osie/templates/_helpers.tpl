@@ -241,7 +241,7 @@ Return the RabbitMQ secret key
 */}}
 {{- define "osie.rabbitmq.secretPasswordKey" -}}
 {{- if .Values.externalRabbitmq.existingSecret -}}
-    {{- if .Values.rabbitmq.auth.existingSecretPasswordKey }}
+    {{- if .Values.rabbitmq.existingSecretPasswordKey }}
         {{- printf "%s" .Values.externalRabbitmq.existingSecretPasswordKey -}}
     {{- else }}
         {{- "rabbitmq-password" }}
