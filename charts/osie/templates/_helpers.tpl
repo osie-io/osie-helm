@@ -247,7 +247,7 @@ Return the RabbitMQ secret key
         {{- "rabbitmq-password" }}
     {{- end }}
 {{- else -}}
-{{- "rabbitmq-password" }}
+    {{- "rabbitmq-password" }}
 {{- end -}}
 {{- end -}}
 
