@@ -40,7 +40,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: {{ include "osie.rabbitmq.secretName" $apiContext }}
-                  key: "rabbitmq-password"
+                  key: {{ include "osie.rabbitmq.secretPasswordKey" $apiContext }}
             {{- if (eq .Values.encryption.provider "bcrypt") }}
             - name: OSIE_ENCRYPTION_DEFAULT_KEY
               valueFrom:

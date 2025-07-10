@@ -241,11 +241,13 @@ Return the RabbitMQ secret key
 */}}
 {{- define "osie.rabbitmq.secretPasswordKey" -}}
 {{- if .Values.externalRabbitmq.existingSecret -}}
-    {{- printf "%s" .Values.externalRabbitmq.existingSecret -}}
-{{- else if .Values.rabbitmq.enabled }}
-    {{- printf "%s" (include "osie.rabbitmq.fullname" .) -}}
+    {{- if .Values.rabbitmq.existingSecretPasswordKey }}
+        {{- printf "%s" .Values.externalRabbitmq.existingSecretPasswordKey -}}
+    {{- else }}
+        {{- "rabbitmq-password" }}
+    {{- end }}
 {{- else -}}
-    {{- printf "%s-%s" (include "common.names.fullname" .) "externalrabbitmq" -}}
+    {{- "rabbitmq-password" }}
 {{- end -}}
 {{- end -}}
 

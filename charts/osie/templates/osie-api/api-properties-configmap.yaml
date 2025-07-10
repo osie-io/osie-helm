@@ -13,7 +13,7 @@ data:
   application.yml: |
     logging:
       level:
-        root: INFO
+        root: {{ .Values.api.logLevel }}
     osie:
       license:
         key: {{ .Values.license.key }}
