@@ -78,6 +78,8 @@ api:
   ##     value: "bar"
   ##
   extraEnvVars: []
+  ## @param api.logLevel Specify a custom log level for the API. INFO, DEBUG, ERROR, WARNING or TRACE
+  logLevel: INFO
 
 adminApi:
   oauth2:
