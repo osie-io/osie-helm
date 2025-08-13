@@ -35,9 +35,9 @@ spec:
           imagePullPolicy: {{ $uiContext.image.pullPolicy }}
           env:
             - name: OSIE_OAUTH2_ISSUER
-              value: {{ include "osie.ui.oauth2IssuerUri" . }}
+              value: {{ include "osie.ui.oauth2IssuerUri" . | quote }}
             - name: OSIE_OAUTH2_CLIENT_ID
-              value: {{ include "osie.oauth2ClientId" $uiContext }}
+              value: {{ include "osie.oauth2ClientId" $uiContext | quote }}
             - name: OSIE_OAUTH2_AUDIENCE
               value: {{ include "osie.oauth2Audience" $uiContext | quote }}
             - name: OSIE_OAUTH2_SCOPE
@@ -45,12 +45,12 @@ spec:
             - name: OSIE_OAUTH2_LOGOUT_URL
               value: {{ include "osie.oauth2LogoutUrl" $uiContext | quote }}
             - name: OSIE_API_HOST
-              value: {{ include "osie.httpScheme" . }}://{{ include "osie.ingressHostname" $apiContext }}
+              value: {{ printf "%s://%s" (include "osie.httpScheme" .) (include "osie.ingressHostname" $apiContext) | quote }}
             - name: OSIE_API_PREFIX
               value: /api-v1
             {{- if $accountConsoleUrl }}
             - name: OSIE_OAUTH2_USER_ACCOUNT_CONSOLE
-              value: {{ $accountConsoleUrl }}
+              value: {{ $accountConsoleUrl | quote }}
             {{- end }}
             {{- if not $uiContext.oauth2.pkce.enabled }}
             - name: OSIE_OAUTH2_DISABLE_PKCE
