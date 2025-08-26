@@ -219,6 +219,9 @@ smtp:
 
 keycloak:
   enabled: true
+  image:
+    # https://github.com/bitnami/containers/issues/83267
+    repository: bitnamilegacy/keycloak
   # replicaCount: 3
   component: "keycloak"
   ingress:
@@ -229,6 +232,9 @@ keycloak:
     adminUser: osie_admin
   postgresql:
     enabled: true
+    image:
+      # https://github.com/bitnami/containers/issues/83267
+      repository: bitnamilegacy/postgresql
     # architecture: replication
     auth:
       username: osie_keycloak
@@ -237,6 +243,9 @@ keycloak:
 
   keycloakConfigCli:
     enabled: true
+    image:
+      # https://github.com/bitnami/containers/issues/83267
+      repository: bitnamilegacy/keycloak-config-cli
     existingConfigmap: '{{ include "osie.keycloakRealmConfigMap" . }}'
 
   initContainers: |-
@@ -275,6 +284,9 @@ externalOpenid:
   adminIssuer: ""
 
 redis:
+  image:
+    # https://github.com/bitnami/containers/issues/83267
+    repository: bitnamilegacy/redis
   enabled: true
   architecture: "standalone"
   master:
@@ -291,6 +303,9 @@ externalRedis:
 
 mongodb:
   enabled: true
+  image:
+    # https://github.com/bitnami/containers/issues/83267
+    repository: bitnamilegacy/mongodb
   # architecture: replicaset
   # replicaCount: 3
   auth:
@@ -304,7 +319,9 @@ mongodb:
   livenessProbe:
     periodSeconds: 45
     timeoutSeconds: 15
-
+  updateStrategy:
+    rollingUpdate:
+      maxUnavailable: 1
 externalMongodb:
   hosts: ""
   database: ""
@@ -313,6 +330,9 @@ externalMongodb:
   existingSecretPasswordKey: ""
 
 rabbitmq:
+  image:
+    # https://github.com/bitnami/containers/issues/83267
+    repository: bitnamilegacy/rabbitmq
   enabled: true
 
 externalRabbitmq:
