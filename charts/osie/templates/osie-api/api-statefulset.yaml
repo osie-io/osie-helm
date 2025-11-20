@@ -48,13 +48,6 @@ spec:
                   name: {{ include "osie.bcrypt.secretName" $apiContext }}
                   key: {{ include "osie.bcrypt.secretKey" $apiContext }}
             {{- end }}
-            {{- if include "osie.redis.auth.enabled" $apiContext }}
-            - name: SPRING_DATA_REDIS_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "osie.redis.secretName" $apiContext }}
-                  key: {{ include "osie.redis.secretPasswordKey" $apiContext }}
-            {{- end }}
             - name: MONGODB_HOSTS
               value: {{ include "osie.mongodb.hosts" $apiContext | quote }}
             - name: MONGODB_USER

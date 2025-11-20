@@ -28,10 +28,6 @@ dependencies:
     version: 14.13.0
     repository: oci://registry-1.docker.io/bitnamicharts
     condition: mongodb.enabled
-  - name: redis
-    repository: oci://registry-1.docker.io/bitnamicharts
-    version: 20.2.1
-    condition: redis.enabled
   - name: rabbitmq
     version: 14.7.0
     repository: oci://registry-1.docker.io/bitnamicharts

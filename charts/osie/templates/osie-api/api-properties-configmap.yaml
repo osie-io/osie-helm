@@ -17,16 +17,7 @@ data:
     osie:
       license:
         key: {{ .Values.license.key }}
-      self:
-        api-base-url: {{ include "osie.httpScheme" $apiContext }}://{{ include "osie.ingressHostname" $apiContext }}{{ $apiContext.httpContext }}
-        ui-base-url: {{ include "osie.uiUrl" . }}
     spring:
-      data:
-        redis:
-          repositories:
-            enabled: false
-          host: {{ include "osie.redis.host" . }}
-          port: {{ include "osie.redis.port" . }}
       rabbitmq:
         host: {{ include "osie.rabbitmq.host" . }}
         port: {{ include "osie.rabbitmq.port" . }}
