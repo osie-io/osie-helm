@@ -55,10 +55,6 @@ osie-mongodb-arbiter-0        1/1     Running   0          18m
 osie-postgresql-primary-0     1/1     Running   0          18m
 osie-postgresql-read-0        1/1     Running   0          18m
 osie-rabbitmq-0               1/1     Running   0          8m39s
-osie-redis-master-0           1/1     Running   0          8m48s
-osie-redis-replicas-0         1/1     Running   0          7m14s
-osie-redis-replicas-1         1/1     Running   0          7m59s
-osie-redis-replicas-2         1/1     Running   0          8m47s
 osie-ui-5b85f6586c-4dk2p      1/1     Running   0          18m
 osie-ui-5b85f6586c-tm8gq      1/1     Running   0          18m
 ```
