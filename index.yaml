@@ -2,6 +2,34 @@ apiVersion: v1
 entries:
   osie:
   - apiVersion: v2
+    appVersion: 25.9.1
+    created: "2025-12-08T12:31:34.888012446Z"
+    dependencies:
+    - condition: mongodb.enabled
+      name: mongodb
+      repository: oci://registry-1.docker.io/bitnamicharts
+      version: 14.13.0
+    - condition: rabbitmq.enabled
+      name: rabbitmq
+      repository: oci://registry-1.docker.io/bitnamicharts
+      version: 14.7.0
+    - condition: keycloak.enabled
+      name: keycloak
+      repository: oci://registry-1.docker.io/bitnamicharts
+      version: 16.1.7
+    - name: common
+      repository: oci://registry-1.docker.io/bitnamicharts
+      tags:
+      - bitnami-common
+      version: 2.x.x
+    description: Deploy Osie into Kubernetes
+    digest: d5cd4a718c3ae0b549100d0c18f75d6495a24db27b3ba543fdbaa0ed1a0d3a21
+    name: osie
+    type: application
+    urls:
+    - https://github.com/osie-io/osie-helm/releases/download/osie-25.9.1/osie-25.9.1.tgz
+    version: 25.9.1
+  - apiVersion: v2
     appVersion: 25.9.0
     created: "2025-12-03T10:17:34.975667455Z"
     dependencies:
@@ -1887,6 +1915,22 @@ entries:
     version: 23.1.0-rc1
   osie-notifier:
   - apiVersion: v2
+    appVersion: 25.9.1
+    created: "2025-12-08T12:31:35.137328076Z"
+    dependencies:
+    - name: common
+      repository: oci://registry-1.docker.io/bitnamicharts
+      tags:
+      - bitnami-common
+      version: 2.x.x
+    description: Deploy Osie Notifier into Kubernetes
+    digest: e7e3da899aa2e6e6e9f663b42e42808154da7e30c3a08eebc0c46c2e2a5c836e
+    name: osie-notifier
+    type: application
+    urls:
+    - https://github.com/osie-io/osie-helm/releases/download/osie-notifier-25.9.1/osie-notifier-25.9.1.tgz
+    version: 25.9.1
+  - apiVersion: v2
     appVersion: 25.9.0
     created: "2025-12-03T10:17:35.247841961Z"
     dependencies:
@@ -2702,4 +2746,4 @@ entries:
     urls:
     - https://github.com/osie-io/osie-helm/releases/download/osie-notifier-23.1.0-rc1/osie-notifier-23.1.0-rc1.tgz
     version: 23.1.0-rc1
-generated: "2025-12-03T10:17:35.248243473Z"
+generated: "2025-12-08T12:31:35.137785813Z"
