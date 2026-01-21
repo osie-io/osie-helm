@@ -1,6 +1,7 @@
 {{- $uiContext := (merge dict . .Values.ui) -}}
 {{- $apiContext := (merge dict . .Values.api) -}}
 {{- $accountConsoleUrl := (include "osie.ui.accountConsoleUrl" .) -}}
+{{- $uiIssuerUri := include "osie.ui.oauth2IssuerUri" . | trim -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -34,8 +35,9 @@ spec:
           image: "{{ $uiContext.image.repository }}:{{ $uiContext.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ $uiContext.image.pullPolicy }}
           env:
+            {{- if $uiIssuerUri }}
             - name: OSIE_OAUTH2_ISSUER
-              value: {{ include "osie.ui.oauth2IssuerUri" . | quote }}
+              value: {{ $uiIssuerUri | quote }}
             - name: OSIE_OAUTH2_CLIENT_ID
               value: {{ include "osie.oauth2ClientId" $uiContext | quote }}
             - name: OSIE_OAUTH2_AUDIENCE
@@ -44,15 +46,23 @@ spec:
               value: {{ include "osie.oauth2Scope" $uiContext | quote }}
             - name: OSIE_OAUTH2_LOGOUT_URL
               value: {{ include "osie.oauth2LogoutUrl" $uiContext | quote }}
+            {{- else }}
+            - name: OSIE_OAUTH2_ISSUER
+              value: {{ include "osie.apiBaseUrl" . | quote }}
+            - name: OSIE_OAUTH2_CLIENT_ID
+              value: "cloud-dashboard"
+            - name: OSIE_OAUTH2_SCOPE
+              value: {{ include "osie.oauth2Scope" $uiContext | quote }}
+            {{- end }}
             - name: OSIE_API_HOST
-              value: {{ printf "%s://%s" (include "osie.httpScheme" .) (include "osie.ingressHostname" $apiContext) | quote }}
+              value: {{ include "osie.apiBaseUrl" . | quote }}
             - name: OSIE_API_PREFIX
               value: /api-v1
             {{- if $accountConsoleUrl }}
             - name: OSIE_OAUTH2_USER_ACCOUNT_CONSOLE
               value: {{ $accountConsoleUrl | quote }}
             {{- end }}
-            {{- if not $uiContext.oauth2.pkce.enabled }}
+            {{- if and $uiIssuerUri (not $uiContext.oauth2.pkce.enabled) }}
             - name: OSIE_OAUTH2_DISABLE_PKCE
               value: "true"
             {{- end}}

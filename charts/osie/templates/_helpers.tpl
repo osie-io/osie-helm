@@ -209,39 +209,33 @@ Return the bcrypt password secret name
 {{- end -}}
 
 {{- define "osie.ui.oauth2IssuerUri" -}}
-{{- if (and .Values.keycloak.enabled) }}
-{{- printf "%s/realms/%s" (include "osie.keycloakUrl" . ) .Values.ui.realm.name }}
-{{- else }}
-{{- if .Values.global.oauth2.issuerUri }}
-{{- .Values.global.oauth2.issuerUri }}
-{{- else }}
-{{- required "ui.oauth2.issuerUri is required" .Values.ui.oauth2.issuerUri -}}
-{{- end }}
-{{- end }}
+{{- if .Values.keycloak.enabled -}}
+{{- printf "%s/realms/%s" (include "osie.keycloakUrl" . ) .Values.ui.realm.name -}}
+{{- else if .Values.global.oauth2.issuerUri -}}
+{{- .Values.global.oauth2.issuerUri -}}
+{{- else if .Values.ui.oauth2.issuerUri -}}
+{{- .Values.ui.oauth2.issuerUri -}}
+{{- end -}}
 {{- end -}}
 
 {{- define "osie.admin.oauth2IssuerUri" -}}
-{{- if (and .Values.keycloak.enabled (not .Values.admin.oauth2.issuerUri)) }}
-{{- printf "%s/realms/%s" (include "osie.keycloakUrl" . ) .Values.admin.realm.name }}
-{{- else }}
-{{- if .Values.global.oauth2.issuerUri -}}
-{{- .Values.global.oauth2.issuerUri }}
-{{- else -}}
-{{- required "admin.oauth2.issuerUri is required" .Values.admin.oauth2.issuerUri -}}
-{{- end }}
-{{- end }}
+{{- if (and .Values.keycloak.enabled (not .Values.admin.oauth2.issuerUri)) -}}
+{{- printf "%s/realms/%s" (include "osie.keycloakUrl" . ) .Values.admin.realm.name -}}
+{{- else if .Values.global.oauth2.issuerUri -}}
+{{- .Values.global.oauth2.issuerUri -}}
+{{- else if .Values.admin.oauth2.issuerUri -}}
+{{- .Values.admin.oauth2.issuerUri -}}
+{{- end -}}
 {{- end -}}
 
 {{- define "osie.adminApi.oauth2IssuerUri" -}}
-{{- if (and .Values.keycloak.enabled (not .Values.adminApi.oauth2.issuerUri)) }}
-{{- printf "%s/realms/%s" (include "osie.keycloakUrl" . ) .Values.admin.realm.name }}
-{{- else }}
-{{- if .Values.global.oauth2.issuerUri -}}
-{{- .Values.global.oauth2.issuerUri }}
-{{- else -}}
-{{- required "adminApi.oauth2.issuerUri is required" .Values.adminApi.oauth2.issuerUri -}}
-{{- end }}
-{{- end }}
+{{- if (and .Values.keycloak.enabled (not .Values.adminApi.oauth2.issuerUri)) -}}
+{{- printf "%s/realms/%s" (include "osie.keycloakUrl" . ) .Values.admin.realm.name -}}
+{{- else if .Values.global.oauth2.issuerUri -}}
+{{- .Values.global.oauth2.issuerUri -}}
+{{- else if .Values.adminApi.oauth2.issuerUri -}}
+{{- .Values.adminApi.oauth2.issuerUri -}}
+{{- end -}}
 {{- end -}}
 
 {{- define "osie.oauth2ClientId" -}}
@@ -400,16 +394,47 @@ Bcrypt password
 {{- end -}}
 {{- end -}}
 
+{{- define "osie.uiServiceFQDN" -}}
+{{- $uiContext := (merge dict . .Values.ui) -}}
+{{- printf "%s.%s.svc.%s" (include "osie.componentName" $uiContext) (include "common.names.namespace" .) .Values.global.clusterDomain -}}
+{{- end -}}
+
+{{- define "osie.adminServiceFQDN" -}}
+{{- $adminContext := (merge dict . .Values.admin) -}}
+{{- printf "%s.%s.svc.%s" (include "osie.componentName" $adminContext) (include "common.names.namespace" .) .Values.global.clusterDomain -}}
+{{- end -}}
+
 {{- define "osie.uiUrl" -}}
+{{- if .Values.global.ingress.enabled -}}
 {{- printf "%s://%s" (include "osie.httpScheme" .) (.Values.ui.ingress.hostname | default .Values.global.ingress.hostname) -}}
+{{- else -}}
+{{- printf "http://%s:%v" (include "osie.uiServiceFQDN" .) .Values.ui.service.port -}}
+{{- end -}}
 {{- end -}}
 
 {{- define "osie.adminUrl" -}}
+{{- if .Values.global.ingress.enabled -}}
 {{- printf "%s://%s/osie_admin" (include "osie.httpScheme" .) (.Values.admin.ingress.hostname | default .Values.global.ingress.hostname) -}}
+{{- else -}}
+{{- printf "http://%s:%v/osie_admin" (include "osie.adminServiceFQDN" .) .Values.admin.service.port -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "osie.apiServiceFQDN" -}}
+{{- $apiContext := (merge dict . .Values.api) -}}
+{{- printf "%s.%s.svc.%s" (include "osie.componentName" $apiContext) (include "common.names.namespace" .) .Values.global.clusterDomain -}}
+{{- end -}}
+
+{{- define "osie.apiBaseUrl" -}}
+{{- if .Values.global.ingress.enabled -}}
+{{- printf "%s://%s" (include "osie.httpScheme" .) (.Values.api.ingress.hostname | default .Values.global.ingress.hostname) -}}
+{{- else -}}
+{{- printf "http://%s:%v" (include "osie.apiServiceFQDN" .) .Values.api.service.port -}}
+{{- end -}}
 {{- end -}}
 
 {{- define "osie.apiUrl" -}}
-{{- printf "%s://%s%s" (include "osie.httpScheme" .) (.Values.api.ingress.hostname | default .Values.global.ingress.hostname) "/api-v1" -}}
+{{- printf "%s/api-v1" (include "osie.apiBaseUrl" .) -}}
 {{- end -}}
 
 {{- define "osie.keycloakUrl" -}}

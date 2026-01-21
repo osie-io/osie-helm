@@ -1,11 +1,18 @@
 !!! OSIE INSTALLATION DETAILS !!!
-{{- if .Values.global.ingress.enabled }}
 
 Osie URLs:
+{{- if .Values.global.ingress.enabled }}
+  Osie Admin Dashboard: {{ include "osie.adminUrl" . }}
+  Osie Client Dashboard: {{ include "osie.uiUrl" . }}
+  Osie API: {{ include "osie.apiUrl" . }}
+{{- else }}
+  Osie Admin Dashboard: {{ include "osie.adminUrl" . }}
+  Osie Client Dashboard: {{ include "osie.uiUrl" . }}
+  Osie API: {{ include "osie.apiUrl" . }}
 
-Osie Admin Dashboard: {{ include "osie.adminUrl" . }}
-Osie Client Dashboard: {{ include "osie.uiUrl" . }}
-Osie API: {{ include "osie.apiUrl" . }}
+  Note: Ingress is disabled. URLs above are internal Kubernetes service addresses.
+  To access externally, use port-forwarding:
+    kubectl -n {{ include "common.names.namespace" . }} port-forward svc/{{ include "osie.componentName" (merge dict . .Values.ui) }} 8080:{{ .Values.ui.service.port }}
 {{- end }}
 {{- if .Values.keycloak.enabled }}
 {{- if (or .Values.global.ingress.enabled .Values.keycloak.ingress.enabled) }}

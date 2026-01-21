@@ -1,6 +1,7 @@
 {{- $adminContext := (merge dict . .Values.admin) -}}
 {{- $apiContext := (merge dict . .Values.api) -}}
 {{- $accountConsoleUrl := (include "osie.admin.accountConsoleUrl" $adminContext) -}}
+{{- $adminIssuerUri := include "osie.admin.oauth2IssuerUri" . | trim -}}
 
 apiVersion: apps/v1
 kind: Deployment
@@ -35,6 +36,7 @@ spec:
           image: "{{ $adminContext.image.repository }}:{{ $adminContext.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ $adminContext.image.pullPolicy }}
           env:
+            {{- if $adminIssuerUri }}
             - name: OSIE_OAUTH2_CLIENT_ID
               value: {{ include "osie.oauth2ClientId" $adminContext | quote }}
             - name: OSIE_OAUTH2_AUDIENCE
@@ -44,7 +46,15 @@ spec:
             - name: OSIE_OAUTH2_LOGOUT_URL
               value: {{ include "osie.oauth2LogoutUrl" $adminContext | quote }}
             - name: OSIE_OAUTH2_ISSUER
-              value: {{ include "osie.admin.oauth2IssuerUri" . | quote }}
+              value: {{ $adminIssuerUri | quote }}
+            {{- else }}
+            - name: OSIE_OAUTH2_ISSUER
+              value: {{ include "osie.apiBaseUrl" . | quote }}
+            - name: OSIE_OAUTH2_CLIENT_ID
+              value: "cloud-admin"
+            - name: OSIE_OAUTH2_SCOPE
+              value: {{ include "osie.oauth2Scope" $adminContext | quote }}
+            {{- end }}
             - name: OSIE_REDIRECT_URI
               value: {{ printf "%s/" (include "osie.adminUrl" .) | quote }}
             - name: OSIE_API_URL
@@ -53,7 +63,7 @@ spec:
             - name: OSIE_OAUTH2_USER_ACCOUNT_CONSOLE
               value: {{ $accountConsoleUrl | quote }}
             {{- end }}
-            {{- if not $adminContext.oauth2.pkce.enabled }}
+            {{- if and $adminIssuerUri (not $adminContext.oauth2.pkce.enabled) }}
             - name: OSIE_OAUTH2_DISABLE_PKCE
               value: "true"
             {{- end}}
