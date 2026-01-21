@@ -2,6 +2,9 @@
 {{- $uiContext := (merge dict . .Values.ui) -}}
 {{- $adminContext := (merge dict . .Values.admin) -}}
 {{- $adminApiContext := (merge dict . .Values.adminApi) -}}
+{{- $uiIssuerUri := include "osie.ui.oauth2IssuerUri" . | trim -}}
+{{- $adminIssuerUri := include "osie.admin.oauth2IssuerUri" . | trim -}}
+{{- $adminApiIssuerUri := include "osie.adminApi.oauth2IssuerUri" . | trim -}}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -28,17 +31,26 @@ data:
         username: {{ include "osie.rabbitmq.user" . }}
     auth:
       main:
+        {{- if $uiIssuerUri }}
         oauth2:
-          issuer-uri: {{ include "osie.ui.oauth2IssuerUri" . }}
+          issuer-uri: {{ $uiIssuerUri }}
           client-id: {{ include "osie.oauth2ClientId" $uiContext }}
+        {{- else }} {}
+        {{- end }}
       admin:
+        {{- if $adminIssuerUri }}
         oauth2:
-          issuer-uri: {{ include "osie.admin.oauth2IssuerUri" . }}
+          issuer-uri: {{ $adminIssuerUri }}
           client-id: {{ include "osie.oauth2ClientId" $adminContext }}
+        {{- else }} {}
+        {{- end }}
       admin-api:
+        {{- if $adminApiIssuerUri }}
         oauth2:
-          issuer-uri: {{ include "osie.adminApi.oauth2IssuerUri" . }}
-          client-id: {{ include "osie.oauth2ClientId" $adminApiContext}}
+          issuer-uri: {{ $adminApiIssuerUri }}
+          client-id: {{ include "osie.oauth2ClientId" $adminApiContext }}
+        {{- else }} {}
+        {{- end }}
     {{- if .Values.sentry.dsn }}
     sentry:
       traces-sample-rate: 1.0

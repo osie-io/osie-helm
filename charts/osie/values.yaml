@@ -6,10 +6,12 @@ nameOverride: ""
 fullnameOverride: ""
 
 global:
+  clusterDomain: cluster.local
   ingress:
     enabled: false
     hostname: ""
     ingressClassName: ""
+    annotations: {}
     secrets: []
     tls: false
   oauth2:
@@ -29,6 +31,7 @@ api:
       - /api-v1
       - /admin_api/v1
       - /v3/api-docs
+      - /.well-known
     pathType: Prefix
     servicePort: http
     hostname: ""
