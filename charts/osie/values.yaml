@@ -330,7 +330,7 @@ externalMongodb:
   port: 27017
   database: ""
   username: ""
-  extraQueryParams: "authSource=admin"
+  extraQueryParams: "authSource=admin&replicaSet=rs0"
   existingSecret: ""
   existingSecretPasswordKey: ""
   existingSecretUsernameKey: ""

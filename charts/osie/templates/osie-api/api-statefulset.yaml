@@ -62,7 +62,7 @@ spec:
                   name: {{ include "osie.mongodb.secretName" $apiContext }}
                   key: {{ include "osie.mongodb.secretKey" $apiContext}}
             - name: SPRING_DATA_MONGODB_URI
-              value: "mongodb://$(MONGODB_USER):$(MONGODB_PASSWORD)@$(MONGODB_HOSTS)/$(MONGODB_DATABASE){{- if .Values.externalMongodb.extraQueryParams }}?{{ .Values.externalMongodb.extraQueryParams }}{{- end }}"
+              value: "mongodb://$(MONGODB_USER):$(MONGODB_PASSWORD)@$(MONGODB_HOSTS)/$(MONGODB_DATABASE){{- if and (not .Values.mongodb.enabled) .Values.externalMongodb.extraQueryParams }}?{{ .Values.externalMongodb.extraQueryParams }}{{- end }}"
             - name: SPRING_DATA_MONGODB_DATABASE
               value: "$(MONGODB_DATABASE)"
             {{- if $apiContext.extraEnvVars }}

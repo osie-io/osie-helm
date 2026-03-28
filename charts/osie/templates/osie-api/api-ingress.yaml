@@ -12,7 +12,7 @@ metadata:
     {{- include "common.tplvalues.render" (dict "value" .Values.global.ingress.annotations "context" $) | nindent 4 }}
     {{- end }}
 spec:
-  {{- if and .Values.global.ingress.ingressClassName (eq "true" (include "common.ingress.supportsIngressClassname" .)) }}
+  {{- if .Values.global.ingress.ingressClassName }}
   ingressClassName: {{ .Values.global.ingress.ingressClassName | quote }}
   {{- end }}
   rules:
@@ -21,9 +21,7 @@ spec:
       http:
         paths:
           - path: {{ . }}
-            {{- if eq "true" (include "common.ingress.supportsPathType" $apiContext) }}
             pathType: {{ $apiContext.ingress.pathType }}
-            {{- end }}
             backend: {{- include "common.ingress.backend" (dict "serviceName" (include "osie.componentName" $apiContext) "servicePort" $apiContext.ingress.servicePort "context" $apiContext)  | nindent 14 }}
   {{- end }}
 

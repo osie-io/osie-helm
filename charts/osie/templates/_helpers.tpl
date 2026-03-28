@@ -373,7 +373,7 @@ Bcrypt password
       info "Waiting for MongoDB come up"
       for host in ${MONGODB_HOSTS//,/ }; do
             info "Waiting for host $host"
-            osie_wait_for_mongodb_connection "mongodb://${MONGODB_USER}:${MONGODB_PASSWORD}@${host}:${MONGODB_PORT}/${MONGODB_DATABASE}{{- if .Values.externalMongodb.extraQueryParams }}?{{ .Values.externalMongodb.extraQueryParams }}{{- end }}"
+            osie_wait_for_mongodb_connection "mongodb://${MONGODB_USER}:${MONGODB_PASSWORD}@${host}:${MONGODB_PORT}/${MONGODB_DATABASE}{{- if and (not .Values.mongodb.enabled) .Values.externalMongodb.extraQueryParams }}?{{ .Values.externalMongodb.extraQueryParams }}{{- end }}"
       done
       info "Database is ready"
 
@@ -408,9 +408,7 @@ Bcrypt password
   http:
     paths:
       - path: {{ tpl .ingress.path . }}
-        {{- if eq "true" (include "common.ingress.supportsPathType" .) }}
         pathType: {{ .ingress.pathType }}
-        {{- end }}
         backend: {{- include "common.ingress.backend" (dict "serviceName" (include "osie.componentName" .) "servicePort" .ingress.servicePort "context" $)  | nindent 14 }}
 {{- end -}}
 
