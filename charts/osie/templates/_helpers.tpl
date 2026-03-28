@@ -122,6 +122,38 @@ We truncate at 63 chars because some Kubernetes name fields are limited to this 
 {{- end -}}
 
 {{/*
+Return the MongoDB username (value or secretKeyRef depending on config)
+Bundled MongoDB: username comes from values (no secret key)
+External MongoDB with existingSecret + existingSecretUsernameKey: read from secret
+*/}}
+{{- define "osie.mongodb.usernameEnv" -}}
+{{- if (and (not .Values.mongodb.enabled) .Values.externalMongodb.existingSecretUsernameKey) -}}
+valueFrom:
+  secretKeyRef:
+    name: {{ include "osie.mongodb.secretName" . }}
+    key: {{ .Values.externalMongodb.existingSecretUsernameKey }}
+{{- else -}}
+value: {{ ternary (index .Values.mongodb.auth.usernames 0) .Values.externalMongodb.username .Values.mongodb.enabled | quote }}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the RabbitMQ username (value or secretKeyRef depending on config)
+Bundled RabbitMQ: username comes from values (no secret key)
+External RabbitMQ with existingSecret + existingSecretUsernameKey: read from secret
+*/}}
+{{- define "osie.rabbitmq.usernameEnv" -}}
+{{- if (and (not .Values.rabbitmq.enabled) .Values.externalRabbitmq.existingSecretUsernameKey) -}}
+valueFrom:
+  secretKeyRef:
+    name: {{ include "osie.rabbitmq.secretName" . }}
+    key: {{ .Values.externalRabbitmq.existingSecretUsernameKey }}
+{{- else -}}
+value: {{ include "osie.rabbitmq.user" . | quote }}
+{{- end -}}
+{{- end -}}
+
+{{/*
 Return the RabbitMQ host
 */}}
 {{- define "osie.rabbitmq.host" -}}
@@ -341,7 +373,7 @@ Bcrypt password
       info "Waiting for MongoDB come up"
       for host in ${MONGODB_HOSTS//,/ }; do
             info "Waiting for host $host"
-            osie_wait_for_mongodb_connection "mongodb://${MONGODB_USER}:${MONGODB_PASSWORD}@${host}:${MONGODB_PORT}/${MONGODB_DATABASE}"
+            osie_wait_for_mongodb_connection "mongodb://${MONGODB_USER}:${MONGODB_PASSWORD}@${host}:${MONGODB_PORT}/${MONGODB_DATABASE}{{- if and (not .Values.mongodb.enabled) .Values.externalMongodb.extraQueryParams }}?{{ .Values.externalMongodb.extraQueryParams }}{{- end }}"
       done
       info "Database is ready"
 
@@ -360,7 +392,7 @@ Bcrypt password
           name: {{ include "osie.mongodb.secretName" . }}
           key: {{ include "osie.mongodb.secretKey" . }}
     - name: MONGODB_USER
-      value: {{ ternary (index .Values.mongodb.auth.usernames 0) .Values.externalMongodb.username .Values.mongodb.enabled | quote }}
+      {{ include "osie.mongodb.usernameEnv" . | nindent 6 }}
     - name: MONGODB_DATABASE
       value: {{ ternary (index .Values.mongodb.auth.databases 0) .Values.externalMongodb.database .Values.mongodb.enabled | quote }}
     - name: RABBITMQ_HOST
@@ -376,9 +408,7 @@ Bcrypt password
   http:
     paths:
       - path: {{ tpl .ingress.path . }}
-        {{- if eq "true" (include "common.ingress.supportsPathType" .) }}
         pathType: {{ .ingress.pathType }}
-        {{- end }}
         backend: {{- include "common.ingress.backend" (dict "serviceName" (include "osie.componentName" .) "servicePort" .ingress.servicePort "context" $)  | nindent 14 }}
 {{- end -}}
 

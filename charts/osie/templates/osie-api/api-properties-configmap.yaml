@@ -28,7 +28,6 @@ data:
       rabbitmq:
         host: {{ include "osie.rabbitmq.host" . }}
         port: {{ include "osie.rabbitmq.port" . }}
-        username: {{ include "osie.rabbitmq.user" . }}
     auth:
       main:
         {{- if $uiIssuerUri }}

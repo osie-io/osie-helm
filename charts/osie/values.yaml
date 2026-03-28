@@ -327,10 +327,13 @@ mongodb:
       maxUnavailable: 1
 externalMongodb:
   hosts: ""
+  port: 27017
   database: ""
   username: ""
+  extraQueryParams: "authSource=admin&replicaSet=rs0"
   existingSecret: ""
   existingSecretPasswordKey: ""
+  existingSecretUsernameKey: ""
 
 rabbitmq:
   image:
@@ -346,6 +349,7 @@ externalRabbitmq:
   vhost: "/"
   existingSecret: ""
   existingSecretPasswordKey: ""
+  existingSecretUsernameKey: ""
 
 sentry:
   dsn: ""

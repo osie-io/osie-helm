@@ -36,6 +36,8 @@ spec:
           image: {{ include "osie.image" $apiContext | quote }}
           imagePullPolicy: {{ $apiContext.image.pullPolicy }}
           env:
+            - name: SPRING_RABBITMQ_USERNAME
+              {{ include "osie.rabbitmq.usernameEnv" $apiContext | nindent 14 }}
             - name: SPRING_RABBITMQ_PASSWORD
               valueFrom:
                 secretKeyRef:
@@ -51,7 +53,7 @@ spec:
             - name: MONGODB_HOSTS
               value: {{ include "osie.mongodb.hosts" $apiContext | quote }}
             - name: MONGODB_USER
-              value: {{ ternary (index .Values.mongodb.auth.usernames 0) .Values.externalMongodb.username .Values.mongodb.enabled | quote }}
+              {{ include "osie.mongodb.usernameEnv" $apiContext | nindent 14 }}
             - name: MONGODB_DATABASE
               value: {{ ternary (index .Values.mongodb.auth.databases 0) .Values.externalMongodb.database .Values.mongodb.enabled | quote }}
             - name: MONGODB_PASSWORD
@@ -60,7 +62,7 @@ spec:
                   name: {{ include "osie.mongodb.secretName" $apiContext }}
                   key: {{ include "osie.mongodb.secretKey" $apiContext}}
             - name: SPRING_DATA_MONGODB_URI
-              value: "mongodb://$(MONGODB_USER):$(MONGODB_PASSWORD)@$(MONGODB_HOSTS)/$(MONGODB_DATABASE)"
+              value: "mongodb://$(MONGODB_USER):$(MONGODB_PASSWORD)@$(MONGODB_HOSTS)/$(MONGODB_DATABASE){{- if and (not .Values.mongodb.enabled) .Values.externalMongodb.extraQueryParams }}?{{ .Values.externalMongodb.extraQueryParams }}{{- end }}"
             - name: SPRING_DATA_MONGODB_DATABASE
               value: "$(MONGODB_DATABASE)"
             {{- if $apiContext.extraEnvVars }}
