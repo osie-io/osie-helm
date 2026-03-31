@@ -24,7 +24,7 @@ api:
   component: "api"
   replicaCount: 1
   image:
-    repository: ghcr.io/osie-io/osie-api
+    repository: ghcr.io/osie/osie-api
     pullPolicy: Always
   ingress:
     paths:
@@ -93,7 +93,7 @@ ui:
   component: "ui"
   replicaCount: 1
   image:
-    repository: ghcr.io/osie-io/osie-ui
+    repository: ghcr.io/osie/osie-ui
     pullPolicy: Always
   ingress:
     path: /
@@ -147,7 +147,7 @@ admin:
   component: "admin"
   replicaCount: 1
   image:
-    repository: ghcr.io/osie-io/osie-admin
+    repository: ghcr.io/osie/osie-admin
     pullPolicy: Always
   ingress:
     path: /osie_admin
