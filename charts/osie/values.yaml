@@ -7,6 +7,11 @@ fullnameOverride: ""
 
 global:
   clusterDomain: cluster.local
+  ## @param global.baseUrl Public base URL used when osie is exposed outside the cluster by a non-ingress mechanism (e.g. Gateway API or another CRD).
+  ## When set, the osie-api `self.base-url` property is populated with this value and the per-component
+  ## `self.{api,ui,admin}-base-url` properties are NOT auto-derived from ingress hostnames or in-cluster FQDNs.
+  ## To configure per-component URLs alongside this, set `api.baseUrl`, `ui.baseUrl` and/or `admin.baseUrl` explicitly.
+  baseUrl: ""
   ingress:
     enabled: false
     hostname: ""
@@ -23,6 +28,9 @@ global:
 api:
   component: "api"
   replicaCount: 1
+  ## @param api.baseUrl Public base URL of osie-api. Takes precedence over the ingress hostname and in-cluster FQDN
+  ## when populating `self.api-base-url` in osie-api configuration.
+  baseUrl: ""
   image:
     repository: ghcr.io/osie/osie-api
     pullPolicy: Always
@@ -92,6 +100,9 @@ adminApi:
 ui:
   component: "ui"
   replicaCount: 1
+  ## @param ui.baseUrl Public base URL of osie-ui. Takes precedence over the ingress hostname and in-cluster FQDN
+  ## when populating `self.ui-base-url` in osie-api configuration.
+  baseUrl: ""
   image:
     repository: ghcr.io/osie/osie-ui
     pullPolicy: Always
@@ -146,6 +157,9 @@ ui:
 admin:
   component: "admin"
   replicaCount: 1
+  ## @param admin.baseUrl Public base URL of osie-admin. Takes precedence over the ingress hostname and in-cluster FQDN
+  ## when populating `self.admin-base-url` in osie-api configuration.
+  baseUrl: ""
   image:
     repository: ghcr.io/osie/osie-admin
     pullPolicy: Always
