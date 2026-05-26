@@ -435,7 +435,9 @@ Bcrypt password
 {{- end -}}
 
 {{- define "osie.uiUrl" -}}
-{{- if .Values.global.ingress.enabled -}}
+{{- if .Values.ui.baseUrl -}}
+{{- .Values.ui.baseUrl -}}
+{{- else if .Values.global.ingress.enabled -}}
 {{- printf "%s://%s" (include "osie.httpScheme" .) (.Values.ui.ingress.hostname | default .Values.global.ingress.hostname) -}}
 {{- else -}}
 {{- printf "http://%s:%v" (include "osie.uiServiceFQDN" .) .Values.ui.service.port -}}
@@ -443,7 +445,9 @@ Bcrypt password
 {{- end -}}
 
 {{- define "osie.adminUrl" -}}
-{{- if .Values.global.ingress.enabled -}}
+{{- if .Values.admin.baseUrl -}}
+{{- .Values.admin.baseUrl -}}
+{{- else if .Values.global.ingress.enabled -}}
 {{- printf "%s://%s/osie_admin" (include "osie.httpScheme" .) (.Values.admin.ingress.hostname | default .Values.global.ingress.hostname) -}}
 {{- else -}}
 {{- printf "http://%s:%v/osie_admin" (include "osie.adminServiceFQDN" .) .Values.admin.service.port -}}
@@ -456,7 +460,9 @@ Bcrypt password
 {{- end -}}
 
 {{- define "osie.apiBaseUrl" -}}
-{{- if .Values.global.ingress.enabled -}}
+{{- if .Values.api.baseUrl -}}
+{{- .Values.api.baseUrl -}}
+{{- else if .Values.global.ingress.enabled -}}
 {{- printf "%s://%s" (include "osie.httpScheme" .) (.Values.api.ingress.hostname | default .Values.global.ingress.hostname) -}}
 {{- else -}}
 {{- printf "http://%s:%v" (include "osie.apiServiceFQDN" .) .Values.api.service.port -}}
