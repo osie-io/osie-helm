@@ -38,7 +38,7 @@ spec:
           env:
             {{- if $adminIssuerUri }}
             - name: OSIE_OAUTH2_CLIENT_ID
-              value: {{ include "osie.oauth2ClientId" $adminContext | quote }}
+              value: {{ include "osie.oauth2ClientId" $adminContext | trim | quote }}
             - name: OSIE_OAUTH2_AUDIENCE
               value: {{ include "osie.oauth2Audience" $adminContext | quote }}
             - name: OSIE_OAUTH2_SCOPE

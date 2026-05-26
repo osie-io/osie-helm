@@ -33,21 +33,21 @@ data:
         {{- if $uiIssuerUri }}
         oauth2:
           issuer-uri: {{ $uiIssuerUri }}
-          client-id: {{ include "osie.oauth2ClientId" $uiContext }}
+          client-id: {{ include "osie.oauth2ClientId" $uiContext | trim }}
         {{- else }} {}
         {{- end }}
       admin:
         {{- if $adminIssuerUri }}
         oauth2:
           issuer-uri: {{ $adminIssuerUri }}
-          client-id: {{ include "osie.oauth2ClientId" $adminContext }}
+          client-id: {{ include "osie.oauth2ClientId" $adminContext | trim }}
         {{- else }} {}
         {{- end }}
       admin-api:
         {{- if $adminApiIssuerUri }}
         oauth2:
           issuer-uri: {{ $adminApiIssuerUri }}
-          client-id: {{ include "osie.oauth2ClientId" $adminApiContext }}
+          client-id: {{ include "osie.oauth2ClientId" $adminApiContext | trim }}
         {{- else }} {}
         {{- end }}
     {{- if .Values.sentry.dsn }}
