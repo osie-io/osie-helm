@@ -39,7 +39,7 @@ spec:
             - name: OSIE_OAUTH2_ISSUER
               value: {{ $uiIssuerUri | quote }}
             - name: OSIE_OAUTH2_CLIENT_ID
-              value: {{ include "osie.oauth2ClientId" $uiContext | quote }}
+              value: {{ include "osie.oauth2ClientId" $uiContext | trim | quote }}
             - name: OSIE_OAUTH2_AUDIENCE
               value: {{ include "osie.oauth2Audience" $uiContext | quote }}
             - name: OSIE_OAUTH2_SCOPE
