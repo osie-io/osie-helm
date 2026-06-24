@@ -38,6 +38,7 @@ api:
     paths:
       - /api-v1
       - /admin_api/v1
+      - /realms
       - /v3/api-docs
       - /.well-known
     pathType: Prefix
