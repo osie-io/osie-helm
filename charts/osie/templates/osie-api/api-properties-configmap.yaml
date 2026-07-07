@@ -54,6 +54,13 @@ data:
         oauth2:
           issuer-uri: {{ $adminIssuerUri }}
           client-id: {{ include "osie.oauth2ClientId" $adminContext | trim }}
+          {{- with .Values.admin.oauth2.rolesClaim }}
+          roles-claim: {{ . }}
+          {{- end }}
+          {{- with .Values.admin.oauth2.roleMappings }}
+          role-mappings:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
         {{- else }} {}
         {{- end }}
       admin-api:

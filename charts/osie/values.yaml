@@ -178,6 +178,12 @@ admin:
     scope: "openid profile email offline_access"
     pkce:
       enabled: true
+    ## @param admin.oauth2.rolesClaim JWT claim carrying the IdP-assigned roles (e.g. "roles" or "groups").
+    ## Only used with an external issuer (REMOTE_OIDC).
+    rolesClaim:
+    ## @param admin.oauth2.roleMappings Claim value → admin role name (e.g. osie-admins: SUPER_ADMIN).
+    ## When set, admin access requires a mapped claim value; declaration order decides precedence.
+    roleMappings: { }
   # Keycloak Realm name if enabled
   realm:
     name: "master"
