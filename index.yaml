@@ -2,6 +2,34 @@ apiVersion: v1
 entries:
   osie:
   - apiVersion: v2
+    appVersion: 26.4.1
+    created: "2026-07-08T06:56:30.444483397Z"
+    dependencies:
+    - condition: mongodb.enabled
+      name: mongodb
+      repository: oci://registry-1.docker.io/bitnamicharts
+      version: 14.13.0
+    - condition: rabbitmq.enabled
+      name: rabbitmq
+      repository: oci://registry-1.docker.io/bitnamicharts
+      version: 14.7.0
+    - condition: keycloak.enabled
+      name: keycloak
+      repository: oci://registry-1.docker.io/bitnamicharts
+      version: 16.1.7
+    - name: common
+      repository: oci://registry-1.docker.io/bitnamicharts
+      tags:
+      - bitnami-common
+      version: 2.x.x
+    description: Deploy Osie into Kubernetes
+    digest: 4fc022042fff8b2147e35a70eb0542cef828ee1fe94682fe6982da1fa3127355
+    name: osie
+    type: application
+    urls:
+    - https://github.com/osie-io/osie-helm/releases/download/osie-26.4.2/osie-26.4.2.tgz
+    version: 26.4.2
+  - apiVersion: v2
     appVersion: 26.4.0
     created: "2026-07-07T15:59:18.000471043Z"
     dependencies:
@@ -3126,4 +3154,4 @@ entries:
     urls:
     - https://github.com/osie-io/osie-helm/releases/download/osie-notifier-23.1.0-rc1/osie-notifier-23.1.0-rc1.tgz
     version: 23.1.0-rc1
-generated: "2026-07-07T15:59:18.001024278Z"
+generated: "2026-07-08T06:56:30.444972823Z"
