@@ -412,12 +412,76 @@ Bcrypt password
         backend: {{- include "common.ingress.backend" (dict "serviceName" (include "osie.componentName" .) "servicePort" .ingress.servicePort "context" $)  | nindent 14 }}
 {{- end -}}
 
+{{/*
+Public hostname of a component exposed through the Gateway API. Expects a component context.
+*/}}
+{{- define "osie.gatewayHostname" -}}
+{{- tpl (.gateway.hostname | default .Values.global.gateway.hostname) . }}
+{{- end -}}
+
+{{/*
+Gateways a component's HTTPRoute attaches to. Expects a component context.
+*/}}
+{{- define "osie.gatewayParentRefs" -}}
+{{- $parentRefs := .gateway.parentRefs | default .Values.global.gateway.parentRefs -}}
+{{- if not $parentRefs -}}
+{{- fail "global.gateway.parentRefs must reference at least one Gateway when global.gateway.enabled is true" -}}
+{{- end -}}
+{{- include "common.tplvalues.render" (dict "value" $parentRefs "context" .) -}}
+{{- end -}}
+
+{{/*
+HTTPRoute exposing a component through the Gateway API. Expects a component context.
+*/}}
+{{- define "osie.httpRoute" -}}
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ include "osie.componentName" . }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels:
+    {{- include "osie.labels" . | nindent 4 }}
+    {{- with .Values.global.gateway.labels }}
+    {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 4 }}
+    {{- end }}
+  {{- with .Values.global.gateway.annotations }}
+  annotations:
+    {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 4 }}
+  {{- end }}
+spec:
+  parentRefs:
+    {{- include "osie.gatewayParentRefs" . | nindent 4 }}
+  {{- with (include "osie.gatewayHostname" .) }}
+  hostnames:
+    - {{ . | quote }}
+  {{- end }}
+  rules:
+    - matches:
+        {{- $context := . }}
+        {{- range .gateway.paths }}
+        - path:
+            type: {{ $context.gateway.pathType }}
+            value: {{ tpl . $context | quote }}
+        {{- end }}
+      {{- with .gateway.filters }}
+      filters:
+        {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 8 }}
+      {{- end }}
+      {{- with .gateway.timeouts }}
+      timeouts:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      backendRefs:
+        - name: {{ include "osie.componentName" . }}
+          port: {{ .service.port }}
+{{- end -}}
+
 {{- define "osie.keycloakRealmConfigMap" -}}
 {{- printf "%s-realm" (include "common.names.fullname" .) }}
 {{- end -}}
 
 {{- define "osie.httpScheme" -}}
-{{- if .Values.global.ingress.tls }}
+{{- if or .Values.global.ingress.tls (and .Values.global.gateway.enabled .Values.global.gateway.tls) }}
     {{- "https" -}}
 {{- else -}}
     {{- "http" -}}
@@ -439,6 +503,8 @@ Bcrypt password
 {{- .Values.ui.baseUrl -}}
 {{- else if .Values.global.ingress.enabled -}}
 {{- printf "%s://%s" (include "osie.httpScheme" .) (.Values.ui.ingress.hostname | default .Values.global.ingress.hostname) -}}
+{{- else if .Values.global.gateway.enabled -}}
+{{- printf "%s://%s" (include "osie.httpScheme" .) (include "osie.gatewayHostname" (merge dict . .Values.ui)) -}}
 {{- else -}}
 {{- printf "http://%s:%v" (include "osie.uiServiceFQDN" .) .Values.ui.service.port -}}
 {{- end -}}
@@ -449,6 +515,8 @@ Bcrypt password
 {{- .Values.admin.baseUrl -}}
 {{- else if .Values.global.ingress.enabled -}}
 {{- printf "%s://%s/osie_admin" (include "osie.httpScheme" .) (.Values.admin.ingress.hostname | default .Values.global.ingress.hostname) -}}
+{{- else if .Values.global.gateway.enabled -}}
+{{- printf "%s://%s/osie_admin" (include "osie.httpScheme" .) (include "osie.gatewayHostname" (merge dict . .Values.admin)) -}}
 {{- else -}}
 {{- printf "http://%s:%v/osie_admin" (include "osie.adminServiceFQDN" .) .Values.admin.service.port -}}
 {{- end -}}
@@ -464,6 +532,8 @@ Bcrypt password
 {{- .Values.api.baseUrl -}}
 {{- else if .Values.global.ingress.enabled -}}
 {{- printf "%s://%s" (include "osie.httpScheme" .) (.Values.api.ingress.hostname | default .Values.global.ingress.hostname) -}}
+{{- else if .Values.global.gateway.enabled -}}
+{{- printf "%s://%s" (include "osie.httpScheme" .) (include "osie.gatewayHostname" (merge dict . .Values.api)) -}}
 {{- else -}}
 {{- printf "http://%s:%v" (include "osie.apiServiceFQDN" .) .Values.api.service.port -}}
 {{- end -}}
