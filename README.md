@@ -39,6 +39,46 @@ helm install osie osie/osie -f values.yaml
 ```
 See [values.yaml](charts/osie/values.yaml) for more configuration options.
 
+### Exposing osie with the Gateway API
+Instead of `global.ingress`, osie can be exposed with the [Gateway API](https://gateway-api.sigs.k8s.io/)
+on clusters running a Gateway controller such as [kgateway](https://kgateway.dev), Envoy Gateway or Istio.
+The chart creates one `HTTPRoute` per component; the `GatewayClass`, the `Gateway` and its TLS
+certificates are yours to manage.
+
+Prerequisites:
+- Gateway API CRDs and a Gateway controller
+- a `Gateway` the routes can attach to, whose listener allows routes from the release namespace
+- `<your-domain>` in your DNS pointing to the Gateway address
+
+**values.yaml**
+```yaml
+global:
+  gateway:
+    enabled: true
+    hostname: "osie.mycompany.com"
+    parentRefs:
+      - name: osie-gateway
+        namespace: gateway-system
+        sectionName: https
+    # Set when the Gateway listener terminates TLS, so osie advertises its URLs as https
+    tls: true
+```
+
+Per component, `api.gateway`, `ui.gateway` and `admin.gateway` accept `hostname`, `paths`,
+`pathType`, `filters` and `timeouts`, plus a `parentRefs` override to attach a component to a
+different Gateway.
+
+TLS works differently than with ingress. cert-manager issues certificates against the `Gateway`, not
+against routes, so `global.gateway.annotations` land on the `HTTPRoute`s and a
+`cert-manager.io/cluster-issuer` there does nothing. Annotate your `Gateway` instead, give its
+listener a `tls.certificateRefs` secret, run cert-manager with `config.enableGatewayAPI=true`, and
+if you solve ACME HTTP-01 challenges use a `gatewayHTTPRoute` solver in the issuer rather than the
+default ingress solver. `global.gateway.tls` only decides whether osie advertises its URLs as https.
+
+Identity provider: pair Gateway API with an external OIDC issuer configured under `global.oauth2`
+and `keycloak.enabled: false`. The bundled Keycloak subchart gets no `HTTPRoute` — if you keep it,
+expose it yourself or with the subchart's own `keycloak.ingress.enabled`.
+
 Typical pods will look like this
 ```
 osie-admin-6859d96764-2rxtk   1/1     Running   0          18m

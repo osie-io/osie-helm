@@ -19,6 +19,24 @@ global:
     annotations: {}
     secrets: []
     tls: false
+  ## Gateway API alternative to `global.ingress`, for clusters running a Gateway controller
+  ## (kgateway, Envoy Gateway, Istio, ...). The chart only creates HTTPRoutes; the GatewayClass,
+  ## the Gateway and its TLS certificates have to exist already.
+  gateway:
+    enabled: false
+    hostname: ""
+    ## @param global.gateway.parentRefs Gateways the generated HTTPRoutes attach to.
+    ## Example:
+    ## parentRefs:
+    ##   - name: osie-gateway
+    ##     namespace: gateway-system
+    ##     sectionName: https
+    parentRefs: []
+    annotations: {}
+    labels: {}
+    ## @param global.gateway.tls Set when the Gateway listener terminates TLS. Only decides whether
+    ## osie advertises its public URLs as https; certificates are configured on the Gateway.
+    tls: false
   oauth2:
     issuerUri:
     clientId:
@@ -44,6 +62,20 @@ api:
     pathType: Prefix
     servicePort: http
     hostname: ""
+  ## HTTPRoute for osie-api, used when `global.gateway.enabled` is set.
+  ## `parentRefs`, when set, overrides `global.gateway.parentRefs`.
+  gateway:
+    paths:
+      - /api-v1
+      - /admin_api/v1
+      - /realms
+      - /v3/api-docs
+      - /.well-known
+    pathType: PathPrefix
+    hostname: ""
+    parentRefs: []
+    filters: []
+    timeouts: {}
   podAnnotations: { }
   podSecurityContext: { }
   # fsGroup: 2000
@@ -112,6 +144,16 @@ ui:
     pathType: Prefix
     servicePort: http
     hostname: ""
+  ## HTTPRoute for osie-ui, used when `global.gateway.enabled` is set.
+  ## `parentRefs`, when set, overrides `global.gateway.parentRefs`.
+  gateway:
+    paths:
+      - /
+    pathType: PathPrefix
+    hostname: ""
+    parentRefs: []
+    filters: []
+    timeouts: {}
   oauth2:
     clientId: "osie-ui"
     issuerUri:
@@ -169,6 +211,16 @@ admin:
     pathType: Prefix
     servicePort: http
     hostname: ""
+  ## HTTPRoute for osie-admin, used when `global.gateway.enabled` is set.
+  ## `parentRefs`, when set, overrides `global.gateway.parentRefs`.
+  gateway:
+    paths:
+      - /osie_admin
+    pathType: PathPrefix
+    hostname: ""
+    parentRefs: []
+    filters: []
+    timeouts: {}
   oauth2:
     clientId: "osie-admin"
     issuerUri:
@@ -248,8 +300,10 @@ keycloak:
     repository: bitnamilegacy/keycloak
   # replicaCount: 3
   component: "keycloak"
+  ## Gateway API is not supported for the bundled keycloak. Under `global.gateway.enabled` expose it
+  ## with the subchart's own `keycloak.ingress.enabled`, or route `hostname` to the keycloak service yourself.
   ingress:
-    hostname: "auth.{{ .Values.global.ingress.hostname }}"
+    hostname: "auth.{{ .Values.global.ingress.hostname | default .Values.global.gateway.hostname }}"
   service:
     type: ClusterIP
   auth:

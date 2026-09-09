@@ -1,7 +1,7 @@
 !!! OSIE INSTALLATION DETAILS !!!
 
 Osie URLs:
-{{- if .Values.global.ingress.enabled }}
+{{- if or .Values.global.ingress.enabled .Values.global.gateway.enabled }}
   Osie Admin Dashboard: {{ include "osie.adminUrl" . }}
   Osie Client Dashboard: {{ include "osie.uiUrl" . }}
   Osie API: {{ include "osie.apiUrl" . }}
@@ -19,6 +19,12 @@ Osie URLs:
 
 Identity provider:
     Keycloak URL: {{ include "osie.keycloakUrl" .}}
+{{- else if .Values.global.gateway.enabled }}
+
+WARNING: the bundled Keycloak is not exposed. This chart does not generate HTTPRoutes for it, so
+osie will advertise {{ include "osie.keycloakUrl" . }} as its issuer without anything routing to it.
+Prefer "keycloak.enabled=false" with an external issuer in "global.oauth2". Otherwise route that
+hostname to service/{{ include "common.names.dependency.fullname" (dict "chartName" "keycloak" "chartValues" .Values.keycloak "context" $) }} yourself, or set "keycloak.ingress.enabled=true" to use the subchart's own Ingress.
 {{- end }}
 
 The "{{ .Values.keycloak.auth.adminUser }}" user can be used for both Osie and Keycloak administration.
