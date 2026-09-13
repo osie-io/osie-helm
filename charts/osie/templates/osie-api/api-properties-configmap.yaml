@@ -5,6 +5,8 @@
 {{- $uiIssuerUri := include "osie.ui.oauth2IssuerUri" . | trim -}}
 {{- $adminIssuerUri := include "osie.admin.oauth2IssuerUri" . | trim -}}
 {{- $adminApiIssuerUri := include "osie.adminApi.oauth2IssuerUri" . | trim -}}
+{{- $adminApiIssuers := list -}}
+{{- with .Values.adminApi.oauth2 }}{{ $adminApiIssuers = .issuers | default list }}{{ end -}}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -64,10 +66,30 @@ data:
         {{- else }} {}
         {{- end }}
       admin-api:
-        {{- if $adminApiIssuerUri }}
+        {{- if or $adminApiIssuerUri $adminApiIssuers }}
         oauth2:
+          {{- if $adminApiIssuerUri }}
           issuer-uri: {{ $adminApiIssuerUri }}
           client-id: {{ include "osie.oauth2ClientId" $adminApiContext | trim }}
+          {{- end }}
+          {{- with $adminApiIssuers }}
+          issuers:
+            {{- range $i, $issuer := . }}
+            - issuer-uri: {{ required (printf "adminApi.oauth2.issuers[%d].issuerUri is required" $i) $issuer.issuerUri | quote }}
+              clients:
+                {{- if not $issuer.clients }}
+                {{- fail (printf "adminApi.oauth2.issuers[%d].clients must list at least one client" $i) }}
+                {{- end }}
+                {{- range $j, $client := $issuer.clients }}
+                - client-id: {{ required (printf "adminApi.oauth2.issuers[%d].clients[%d].clientId is required" $i $j) $client.clientId | quote }}
+                  audience: {{ required (printf "adminApi.oauth2.issuers[%d].clients[%d].audience is required" $i $j) $client.audience | quote }}
+                  {{- with $client.permissions }}
+                  permissions:
+                    {{- toYaml . | nindent 20 }}
+                  {{- end }}
+                {{- end }}
+            {{- end }}
+          {{- end }}
         {{- else }} {}
         {{- end }}
     {{- if .Values.sentry.dsn }}
