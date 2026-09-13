@@ -129,6 +129,8 @@ adminApi:
   oauth2:
     clientId: "osie-admin-api"
     issuerUri:
+    ## @param adminApi.oauth2.issuers Additional trusted issuers: [{issuerUri, clients: [{clientId, audience, permissions}]}]; permissions are optional.
+    issuers: []
 
 ui:
   component: "ui"
