@@ -411,6 +411,11 @@ externalMongodb:
   existingSecret: ""
   existingSecretPasswordKey: ""
   existingSecretUsernameKey: ""
+  tls:
+    enabled: false
+    caConfigMap: ""
+    caSecret: ""
+    caKey: "ca.crt"
 
 rabbitmq:
   image:
@@ -427,6 +432,11 @@ externalRabbitmq:
   existingSecret: ""
   existingSecretPasswordKey: ""
   existingSecretUsernameKey: ""
+  tls:
+    enabled: false
+    caConfigMap: ""
+    caSecret: ""
+    caKey: "ca.crt"
 
 sentry:
   dsn: ""

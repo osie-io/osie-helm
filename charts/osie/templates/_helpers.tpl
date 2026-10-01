@@ -64,6 +64,28 @@ Return mongodb port
 {{- end -}}
 {{- end -}}
 
+{{- define "osie.mongodb.tls" -}}
+{{- if and (not .Values.mongodb.enabled) .Values.externalMongodb.tls.enabled -}}true{{- end -}}
+{{- end -}}
+
+{{- define "osie.mongodb.tlsCa" -}}
+{{- if and (include "osie.mongodb.tls" .) (or .Values.externalMongodb.tls.caConfigMap .Values.externalMongodb.tls.caSecret) -}}true{{- end -}}
+{{- end -}}
+
+{{- define "osie.mongodb.caFile" -}}/opt/osie/tls/mongodb/ca.crt{{- end -}}
+
+{{- define "osie.mongodb.queryParams" -}}
+{{- $params := list -}}
+{{- if not .Values.mongodb.enabled -}}
+    {{- $extra := .Values.externalMongodb.extraQueryParams | default "" -}}
+    {{- $params = append $params $extra -}}
+    {{- if and (include "osie.mongodb.tls" .) (not (regexMatch "(^|&)(tls|ssl)=" $extra)) -}}
+        {{- $params = append $params "tls=true" -}}
+    {{- end -}}
+{{- end -}}
+{{- join "&" (compact $params) -}}
+{{- end -}}
+
 {{/*
 Return the MongoDB Secret Name
 */}}
@@ -221,8 +243,62 @@ Return the RabbitMQ host
 {{- if .Values.rabbitmq.enabled }}
     {{- printf "/" -}}
 {{- else -}}
-    {{- printf "%s" .Values.externalRabbitmq.vhost -}}
+    {{- printf "%s" (.Values.externalRabbitmq.vhost | default "/") -}}
 {{- end -}}
+{{- end -}}
+
+{{- define "osie.rabbitmq.tls" -}}
+{{- if and (not .Values.rabbitmq.enabled) .Values.externalRabbitmq.tls.enabled -}}true{{- end -}}
+{{- end -}}
+
+{{- define "osie.rabbitmq.tlsCa" -}}
+{{- if and (include "osie.rabbitmq.tls" .) (or .Values.externalRabbitmq.tls.caConfigMap .Values.externalRabbitmq.tls.caSecret) -}}true{{- end -}}
+{{- end -}}
+
+{{- define "osie.rabbitmq.caFile" -}}/opt/osie/tls/rabbitmq/ca.crt{{- end -}}
+
+{{- define "osie.externalTls.caSource" -}}
+{{- $tls := .tls -}}
+{{- if and $tls.caConfigMap $tls.caSecret -}}
+    {{- fail (printf "%s.tls: set caConfigMap or caSecret, not both" .name) -}}
+{{- end -}}
+{{- if $tls.caSecret -}}
+secret:
+  secretName: {{ $tls.caSecret }}
+  items:
+    - key: {{ required (printf "%s.tls.caKey is required" .name) $tls.caKey }}
+      path: ca.crt
+{{- else -}}
+configMap:
+  name: {{ $tls.caConfigMap }}
+  items:
+    - key: {{ required (printf "%s.tls.caKey is required" .name) $tls.caKey }}
+      path: ca.crt
+{{- end -}}
+{{- end -}}
+
+{{- define "osie.externalTls.volumes" -}}
+{{- if include "osie.mongodb.tlsCa" . }}
+- name: mongodb-ca
+  {{- include "osie.externalTls.caSource" (dict "name" "externalMongodb" "tls" .Values.externalMongodb.tls) | nindent 2 }}
+{{- end }}
+{{- if include "osie.rabbitmq.tlsCa" . }}
+- name: rabbitmq-ca
+  {{- include "osie.externalTls.caSource" (dict "name" "externalRabbitmq" "tls" .Values.externalRabbitmq.tls) | nindent 2 }}
+{{- end }}
+{{- end -}}
+
+{{- define "osie.externalTls.volumeMounts" -}}
+{{- if include "osie.mongodb.tlsCa" . }}
+- name: mongodb-ca
+  mountPath: {{ include "osie.mongodb.caFile" . | dir }}
+  readOnly: true
+{{- end }}
+{{- if include "osie.rabbitmq.tlsCa" . }}
+- name: rabbitmq-ca
+  mountPath: {{ include "osie.rabbitmq.caFile" . | dir }}
+  readOnly: true
+{{- end }}
 {{- end -}}
 
 {{/*
@@ -350,6 +426,10 @@ Bcrypt password
 {{- end}}
 
 {{- define "osie.waitForDBInitContainer" -}}
+{{- $mongoParams := include "osie.mongodb.queryParams" . -}}
+{{- if include "osie.mongodb.tlsCa" . -}}
+{{- $mongoParams = join "&" (compact (list $mongoParams (printf "tlsCAFile=%s" (include "osie.mongodb.caFile" .)))) -}}
+{{- end -}}
 # We need to wait for the MongoDB database to be ready in order to start with Osie.
 # As it is a ReplicaSet, we need that all nodes are configured in order to start with
 # the application or race conditions can occur
@@ -373,14 +453,21 @@ Bcrypt password
       info "Waiting for MongoDB come up"
       for host in ${MONGODB_HOSTS//,/ }; do
             info "Waiting for host $host"
-            osie_wait_for_mongodb_connection "mongodb://${MONGODB_USER}:${MONGODB_PASSWORD}@${host}:${MONGODB_PORT}/${MONGODB_DATABASE}{{- if and (not .Values.mongodb.enabled) .Values.externalMongodb.extraQueryParams }}?{{ .Values.externalMongodb.extraQueryParams }}{{- end }}"
+            osie_wait_for_mongodb_connection "mongodb://${MONGODB_USER}:${MONGODB_PASSWORD}@${host}:${MONGODB_PORT}/${MONGODB_DATABASE}{{ with $mongoParams }}?{{ . }}{{ end }}"
       done
       info "Database is ready"
 
       info "Waiting for RabbitMQ come up"
-      osie_wait_for_http_connection "${RABBITMQ_HOST}:15672" 10 3
+      if ! wait-for-port --host="${RABBITMQ_HOST}" --timeout=120 "${RABBITMQ_PORT}"; then
+            error "Could not connect to ${RABBITMQ_HOST}:${RABBITMQ_PORT}"
+            exit 1
+      fi
       info "RabbitMQ is ready"
 
+  {{- with (include "osie.externalTls.volumeMounts" . | trim) }}
+  volumeMounts:
+    {{- . | nindent 4 }}
+  {{- end }}
   env:
     - name: MONGODB_HOSTS
       value: {{ include "osie.mongodb.hosts" . | quote }}
@@ -397,6 +484,8 @@ Bcrypt password
       value: {{ ternary (index .Values.mongodb.auth.databases 0) .Values.externalMongodb.database .Values.mongodb.enabled | quote }}
     - name: RABBITMQ_HOST
       value: {{ include "osie.rabbitmq.host" . | quote }}
+    - name: RABBITMQ_PORT
+      value: {{ include "osie.rabbitmq.port" . | quote }}
 {{- end -}}
 
 {{- define "osie.ingressHostname" -}}

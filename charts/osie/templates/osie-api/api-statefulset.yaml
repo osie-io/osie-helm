@@ -62,7 +62,7 @@ spec:
                   name: {{ include "osie.mongodb.secretName" $apiContext }}
                   key: {{ include "osie.mongodb.secretKey" $apiContext}}
             - name: SPRING_DATA_MONGODB_URI
-              value: "mongodb://$(MONGODB_USER):$(MONGODB_PASSWORD)@$(MONGODB_HOSTS)/$(MONGODB_DATABASE){{- if and (not .Values.mongodb.enabled) .Values.externalMongodb.extraQueryParams }}?{{ .Values.externalMongodb.extraQueryParams }}{{- end }}"
+              value: "mongodb://$(MONGODB_USER):$(MONGODB_PASSWORD)@$(MONGODB_HOSTS)/$(MONGODB_DATABASE){{ with include "osie.mongodb.queryParams" $apiContext }}?{{ . }}{{ end }}"
             - name: SPRING_DATA_MONGODB_DATABASE
               value: "$(MONGODB_DATABASE)"
             {{- if $apiContext.extraEnvVars }}
@@ -72,6 +72,9 @@ spec:
             - name: osie-api-config
               mountPath: /opt/osie/api/application.yml
               subPath: application.yml
+            {{- with (include "osie.externalTls.volumeMounts" $apiContext | trim) }}
+            {{- . | nindent 12 }}
+            {{- end }}
             {{- if $apiContext.extraVolumeMounts }}
             {{- include "common.tplvalues.render" (dict "value" $apiContext.extraVolumeMounts "context" $) | nindent 12 }}
             {{- end }}
@@ -101,6 +104,9 @@ spec:
         - name: osie-api-config
           configMap:
             name: {{ printf "%s-config" (include "osie.componentName" $apiContext) }}
+        {{- with (include "osie.externalTls.volumes" $apiContext | trim) }}
+        {{- . | nindent 8 }}
+        {{- end }}
         {{- if $apiContext.extraVolumes }}
         {{- include "common.tplvalues.render" (dict "value" $apiContext.extraVolumes "context" $) | nindent 8 }}
         {{- end }}

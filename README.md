@@ -79,6 +79,48 @@ Identity provider: pair Gateway API with an external OIDC issuer configured unde
 and `keycloak.enabled: false`. The bundled Keycloak subchart gets no `HTTPRoute` — if you keep it,
 expose it yourself or with the subchart's own `keycloak.ingress.enabled`.
 
+### External MongoDB and RabbitMQ over TLS
+Set `tls.enabled` on `externalMongodb` and `externalRabbitmq`. When the servers present a
+certificate from a private CA, point `caConfigMap` (or `caSecret`) and `caKey` at a PEM bundle
+holding that CA. The chart mounts it into the API and its `wait-for-db` init container. The API trusts
+it only for that connection, so public endpoints keep the default trust store.
+
+**values.yaml**
+```yaml
+mongodb:
+  enabled: false
+rabbitmq:
+  enabled: false
+
+externalMongodb:
+  hosts: "mongodb-0.db.mycompany.com"
+  port: 27017
+  database: osie
+  extraQueryParams: "authSource=admin&replicaSet=rs0"
+  existingSecret: osie-mongodb-user
+  existingSecretUsernameKey: username
+  existingSecretPasswordKey: password
+  tls:
+    enabled: true
+    caConfigMap: mycompany-trust-bundle
+    caKey: ca-certificates.crt
+
+externalRabbitmq:
+  host: rabbitmq.mycompany.com
+  port: 5671
+  vhost: osie
+  existingSecret: osie-rabbitmq-user
+  existingSecretUsernameKey: username
+  existingSecretPasswordKey: password
+  tls:
+    enabled: true
+    caConfigMap: mycompany-trust-bundle
+    caKey: ca-certificates.crt
+```
+
+`tls.enabled` alone, with no CA, trusts the JVM's default CAs. Only the AMQP port has to be reachable;
+the RabbitMQ management port is never used.
+
 Typical pods will look like this
 ```
 osie-admin-6859d96764-2rxtk   1/1     Running   0          18m
