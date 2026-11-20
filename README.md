@@ -9,6 +9,11 @@ delete them with their data. Move the release first with
 [migrate-bundled](https://github.com/osie/deployment/tree/main/kubernetes/migrate-bundled), on chart 26.8,
 then upgrade with the values it writes merged into yours.
 
+The check reads the cluster, which tools that only render the chart cannot do (Argo CD, `helm template`).
+There the chart still requires `externalMongodb.hosts` and `externalRabbitmq.host`, which a release on the
+bundled services does not have, but it cannot see a bundled Keycloak. With Argo CD, migrate before you
+move the release to this chart version.
+
 ### Full documentation
 
 [Osie installation documentation](https://osie.io/docs/operators-manual/kubernetes-install/)
