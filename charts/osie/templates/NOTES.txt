@@ -14,21 +14,3 @@ Osie URLs:
   To access externally, use port-forwarding:
     kubectl -n {{ include "common.names.namespace" . }} port-forward svc/{{ include "osie.componentName" (merge dict . .Values.ui) }} 8080:{{ .Values.ui.service.port }}
 {{- end }}
-{{- if .Values.keycloak.enabled }}
-{{- if (or .Values.global.ingress.enabled .Values.keycloak.ingress.enabled) }}
-
-Identity provider:
-    Keycloak URL: {{ include "osie.keycloakUrl" .}}
-{{- else if .Values.global.gateway.enabled }}
-
-WARNING: the bundled Keycloak is not exposed. This chart does not generate HTTPRoutes for it, so
-osie will advertise {{ include "osie.keycloakUrl" . }} as its issuer without anything routing to it.
-Prefer "keycloak.enabled=false" with an external issuer in "global.oauth2". Otherwise route that
-hostname to service/{{ include "common.names.dependency.fullname" (dict "chartName" "keycloak" "chartValues" .Values.keycloak "context" $) }} yourself, or set "keycloak.ingress.enabled=true" to use the subchart's own Ingress.
-{{- end }}
-
-The "{{ .Values.keycloak.auth.adminUser }}" user can be used for both Osie and Keycloak administration.
-
-    Admin user: {{ .Values.keycloak.auth.adminUser }}
-    Admin password (initial): kubectl -n {{ include "common.names.namespace" . }} get secret {{ include "osie.keycloak.auth.secretName" . }} -o json | jq -r '.data."admin-password"' | base64 -d
-{{- end }}

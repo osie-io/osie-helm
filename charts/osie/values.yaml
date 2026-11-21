@@ -165,10 +165,6 @@ ui:
     scope: "openid profile email offline_access"
     pkce:
       enabled: true
-  # Keycloak Realm name if enabled
-  realm:
-    name: "clients"
-    displayName: "Cloud console"
   podAnnotations: { }
   podSecurityContext: { }
   # fsGroup: 2000
@@ -238,10 +234,6 @@ admin:
     ## @param admin.oauth2.roleMappings Claim value → admin role name (e.g. osie-admins: SUPER_ADMIN).
     ## When set, admin access requires a mapped claim value; declaration order decides precedence.
     roleMappings: { }
-  # Keycloak Realm name if enabled
-  realm:
-    name: "master"
-    displayName: "Cloud Admin"
   podAnnotations: { }
   podSecurityContext: { }
   # fsGroup: 2000
@@ -295,113 +287,11 @@ smtp:
   from: # support@example.com
   fromDisplayName: # Example.com
 
-keycloak:
-  enabled: true
-  image:
-    # https://github.com/bitnami/containers/issues/83267
-    repository: bitnamilegacy/keycloak
-  # replicaCount: 3
-  component: "keycloak"
-  ## Gateway API is not supported for the bundled keycloak. Under `global.gateway.enabled` expose it
-  ## with the subchart's own `keycloak.ingress.enabled`, or route `hostname` to the keycloak service yourself.
-  ingress:
-    hostname: "auth.{{ .Values.global.ingress.hostname | default .Values.global.gateway.hostname }}"
-  service:
-    type: ClusterIP
-  auth:
-    adminUser: osie_admin
-  postgresql:
-    enabled: true
-    image:
-      # https://github.com/bitnami/containers/issues/83267
-      repository: bitnamilegacy/postgresql
-    # architecture: replication
-    auth:
-      username: osie_keycloak
-      database: osie_keycloak
-      # replicationUsername: osie_pg_repl
-
-  keycloakConfigCli:
-    enabled: true
-    image:
-      # https://github.com/bitnami/containers/issues/83267
-      repository: bitnamilegacy/keycloak-config-cli
-    existingConfigmap: '{{ include "osie.keycloakRealmConfigMap" . }}'
-
-  initContainers: |-
-    - name: osie-keywind-theme 
-      image: ghcr.io/osie-io/osie-keywind:0.1.0-rc1
-      imagePullPolicy: Always
-      command:
-        - sh
-      args:
-        - -c
-        - |
-          echo "Copying theme..."
-          cp -R /theme/* /keycloak-theme
-      volumeMounts:
-        - name: keycloak-theme 
-          mountPath: /keycloak-theme
-
-  extraVolumeMounts: |-
-    - name: keycloak-theme 
-      mountPath: /opt/bitnami/keycloak/themes/osie
-
-  extraVolumes: |-
-    - name: keycloak-theme 
-      emptyDir: {}
-
-  extraEnvVars:
-    - name: KEYCLOAK_EXTRA_ARGS
-      value: "--features=preview"
-    - name: KEYCLOAK_PRODUCTION
-      value: "true"
-    - name: KEYCLOAK_PROXY
-      value: "edge"
-
-externalOpenid:
-  issuer: ""
-  adminIssuer: ""
-
-redis:
-  image:
-    # https://github.com/bitnami/containers/issues/83267
-    repository: bitnamilegacy/redis
-  enabled: true
-  architecture: "standalone"
-  master:
-    disableCommands: []
-  replica:
-    disableCommands: []
-
-externalRedis:
-  host: ""
-  port: 6379
-  password: ""
-  existingSecret: ""
-  existingSecretPasswordKey: ""
-
-mongodb:
-  enabled: true
-  image:
-    # https://github.com/bitnami/containers/issues/83267
-    repository: bitnamilegacy/mongodb
-  # architecture: replicaset
-  # replicaCount: 3
-  auth:
-    usernames:
-      - osie
-    databases:
-      - osie
-  readinessProbe:
-    periodSeconds: 30
-    timeoutSeconds: 15
-  livenessProbe:
-    periodSeconds: 45
-    timeoutSeconds: 15
-  updateStrategy:
-    rollingUpdate:
-      maxUnavailable: 1
+## MongoDB, RabbitMQ and the identity provider run outside this chart, for example from the operators
+## in https://github.com/osie/deployment. A release that still runs the MongoDB, RabbitMQ or Keycloak
+## bundled by earlier versions of this chart has to be moved first with
+## https://github.com/osie/deployment/tree/main/kubernetes/migrate-bundled
+## @param externalMongodb.hosts Required. Comma-separated MongoDB hosts.
 externalMongodb:
   hosts: ""
   port: 27017
@@ -417,12 +307,7 @@ externalMongodb:
     caSecret: ""
     caKey: "ca.crt"
 
-rabbitmq:
-  image:
-    # https://github.com/bitnami/containers/issues/83267
-    repository: bitnamilegacy/rabbitmq
-  enabled: true
-
+## @param externalRabbitmq.host Required. RabbitMQ host.
 externalRabbitmq:
   host: ""
   port: 5672

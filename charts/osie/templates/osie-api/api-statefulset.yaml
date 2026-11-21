@@ -55,7 +55,7 @@ spec:
             - name: MONGODB_USER
               {{ include "osie.mongodb.usernameEnv" $apiContext | nindent 14 }}
             - name: MONGODB_DATABASE
-              value: {{ ternary (index .Values.mongodb.auth.databases 0) .Values.externalMongodb.database .Values.mongodb.enabled | quote }}
+              value: {{ .Values.externalMongodb.database | quote }}
             - name: MONGODB_PASSWORD
               valueFrom:
                 secretKeyRef:

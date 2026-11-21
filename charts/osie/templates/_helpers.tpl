@@ -24,48 +24,21 @@ Return container image
 {{- end }}
 
 {{/*
-Return MongoDB fullname
-*/}}
-{{- define "osie.mongodb.fullname" -}}
-{{- include "common.names.dependency.fullname" (dict "chartName" "mongodb" "chartValues" .Values.mongodb "context" $) -}}
-{{- end -}}
-
-{{/*
 Return list of mongodb hosts
 */}}
 {{- define "osie.mongodb.hosts" -}}
-{{- if .Values.mongodb.enabled -}}
-    {{- $mongodbfullname := include "osie.mongodb.fullname" . -}}
-
-    {{- if (eq .Values.mongodb.architecture "replicaset") }}
-        {{- $replicas := .Values.mongodb.replicaCount | int }}
-        {{- $hosts := printf "%s-0.%s-headless" $mongodbfullname $mongodbfullname -}}
-        {{- range $i, $_e := until (sub $replicas 1 | int) }}
-            {{- $hosts = printf "%s,%s-%d.%s-headless" $hosts $mongodbfullname (add $i 1 | int) $mongodbfullname -}}
-        {{- end }}
-        {{- print $hosts }}
-    {{- else }}
-        {{- print $mongodbfullname }}
-    {{- end }}
-{{- else -}}
-    {{- print (join "," .Values.externalMongodb.hosts)  -}}
-{{- end -}}
+{{- print (join "," .Values.externalMongodb.hosts) -}}
 {{- end -}}
 
 {{/*
 Return mongodb port
 */}}
 {{- define "osie.mongodb.port" -}}
-{{- if .Values.mongodb.enabled -}}
-    {{/* We are using the headless service so we need to use the container port */}}
-    {{- print .Values.mongodb.containerPorts.mongodb -}}
-{{- else -}}
-    {{- print .Values.externalMongodb.port  -}}
-{{- end -}}
+{{- print .Values.externalMongodb.port -}}
 {{- end -}}
 
 {{- define "osie.mongodb.tls" -}}
-{{- if and (not .Values.mongodb.enabled) .Values.externalMongodb.tls.enabled -}}true{{- end -}}
+{{- if .Values.externalMongodb.tls.enabled -}}true{{- end -}}
 {{- end -}}
 
 {{- define "osie.mongodb.tlsCa" -}}
@@ -76,12 +49,10 @@ Return mongodb port
 
 {{- define "osie.mongodb.queryParams" -}}
 {{- $params := list -}}
-{{- if not .Values.mongodb.enabled -}}
-    {{- $extra := .Values.externalMongodb.extraQueryParams | default "" -}}
-    {{- $params = append $params $extra -}}
-    {{- if and (include "osie.mongodb.tls" .) (not (regexMatch "(^|&)(tls|ssl)=" $extra)) -}}
-        {{- $params = append $params "tls=true" -}}
-    {{- end -}}
+{{- $extra := .Values.externalMongodb.extraQueryParams | default "" -}}
+{{- $params = append $params $extra -}}
+{{- if and (include "osie.mongodb.tls" .) (not (regexMatch "(^|&)(tls|ssl)=" $extra)) -}}
+    {{- $params = append $params "tls=true" -}}
 {{- end -}}
 {{- join "&" (compact $params) -}}
 {{- end -}}
@@ -90,9 +61,7 @@ Return mongodb port
 Return the MongoDB Secret Name
 */}}
 {{- define "osie.mongodb.secretName" -}}
-{{- if .Values.mongodb.enabled }}
-    {{- printf "%s" (include "osie.mongodb.fullname" .) -}}
-{{- else if .Values.externalMongodb.existingSecret -}}
+{{- if .Values.externalMongodb.existingSecret -}}
     {{- printf "%s" .Values.externalMongodb.existingSecret -}}
 {{- else -}}
     {{- printf "%s-externalmongo" (include "common.names.fullname" .) | trunc 63 | trimSuffix "-" -}}
@@ -103,18 +72,10 @@ Return the MongoDB Secret Name
 Retrieve key of the MongoDB secret
 */}}
 {{- define "osie.mongodb.secretKey" -}}
-{{- if .Values.mongodb.enabled -}}
-    {{- print "mongodb-passwords" -}}
+{{- if and .Values.externalMongodb.existingSecret .Values.externalMongodb.existingSecretPasswordKey -}}
+    {{- printf "%s" .Values.externalMongodb.existingSecretPasswordKey -}}
 {{- else -}}
-    {{- if .Values.externalMongodb.existingSecret -}}
-        {{- if .Values.externalMongodb.existingSecretPasswordKey -}}
-            {{- printf "%s" .Values.externalMongodb.existingSecretPasswordKey -}}
-        {{- else -}}
-            {{- print "mongodb-password" -}}
-        {{- end -}}
-    {{- else -}}
-        {{- print "mongodb-password" -}}
-    {{- end -}}
+    {{- print "mongodb-password" -}}
 {{- end -}}
 {{- end -}}
 
@@ -136,36 +97,24 @@ Retrieve key of the MongoDB secret
 
 
 {{/*
-Create a default fully qualified app name for RabbitMQ subchart
-We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
-*/}}
-{{- define "osie.rabbitmq.fullname" -}}
-{{- include "common.names.dependency.fullname" (dict "chartName" "rabbitmq" "chartValues" .Values.rabbitmq "context" $) -}}
-{{- end -}}
-
-{{/*
-Return the MongoDB username (value or secretKeyRef depending on config)
-Bundled MongoDB: username comes from values (no secret key)
-External MongoDB with existingSecret + existingSecretUsernameKey: read from secret
+Return the MongoDB username: from existingSecret when existingSecretUsernameKey is set, otherwise from values
 */}}
 {{- define "osie.mongodb.usernameEnv" -}}
-{{- if (and (not .Values.mongodb.enabled) .Values.externalMongodb.existingSecretUsernameKey) -}}
+{{- if .Values.externalMongodb.existingSecretUsernameKey -}}
 valueFrom:
   secretKeyRef:
     name: {{ include "osie.mongodb.secretName" . }}
     key: {{ .Values.externalMongodb.existingSecretUsernameKey }}
 {{- else -}}
-value: {{ ternary (index .Values.mongodb.auth.usernames 0) .Values.externalMongodb.username .Values.mongodb.enabled | quote }}
+value: {{ .Values.externalMongodb.username | quote }}
 {{- end -}}
 {{- end -}}
 
 {{/*
-Return the RabbitMQ username (value or secretKeyRef depending on config)
-Bundled RabbitMQ: username comes from values (no secret key)
-External RabbitMQ with existingSecret + existingSecretUsernameKey: read from secret
+Return the RabbitMQ username: from existingSecret when existingSecretUsernameKey is set, otherwise from values
 */}}
 {{- define "osie.rabbitmq.usernameEnv" -}}
-{{- if (and (not .Values.rabbitmq.enabled) .Values.externalRabbitmq.existingSecretUsernameKey) -}}
+{{- if .Values.externalRabbitmq.existingSecretUsernameKey -}}
 valueFrom:
   secretKeyRef:
     name: {{ include "osie.rabbitmq.secretName" . }}
@@ -179,33 +128,21 @@ value: {{ include "osie.rabbitmq.user" . | quote }}
 Return the RabbitMQ host
 */}}
 {{- define "osie.rabbitmq.host" -}}
-{{- if .Values.rabbitmq.enabled }}
-    {{- printf "%s" (include "osie.rabbitmq.fullname" .) -}}
-{{- else -}}
-    {{- printf "%s" .Values.externalRabbitmq.host -}}
-{{- end -}}
+{{- printf "%s" .Values.externalRabbitmq.host -}}
 {{- end -}}
 
 {{/*
 Return the RabbitMQ Port
 */}}
 {{- define "osie.rabbitmq.port" -}}
-{{- if .Values.rabbitmq.enabled }}
-    {{- printf "%d" (.Values.rabbitmq.service.ports.amqp | int ) -}}
-{{- else -}}
-    {{- printf "%d" (.Values.externalRabbitmq.port | int ) -}}
-{{- end -}}
+{{- printf "%d" (.Values.externalRabbitmq.port | int ) -}}
 {{- end -}}
 
 {{/*
 Return the RabbitMQ username
 */}}
 {{- define "osie.rabbitmq.user" -}}
-{{- if .Values.rabbitmq.enabled }}
-    {{- printf "%s" .Values.rabbitmq.auth.username -}}
-{{- else -}}
-    {{- printf "%s" .Values.externalRabbitmq.username -}}
-{{- end -}}
+{{- printf "%s" .Values.externalRabbitmq.username -}}
 {{- end -}}
 
 {{/*
@@ -214,8 +151,6 @@ Return the RabbitMQ secret name
 {{- define "osie.rabbitmq.secretName" -}}
 {{- if .Values.externalRabbitmq.existingSecret -}}
     {{- printf "%s" .Values.externalRabbitmq.existingSecret -}}
-{{- else if .Values.rabbitmq.enabled }}
-    {{- printf "%s" (include "osie.rabbitmq.fullname" .) -}}
 {{- else -}}
     {{- printf "%s-%s" (include "common.names.fullname" .) "externalrabbitmq" -}}
 {{- end -}}
@@ -240,15 +175,11 @@ Return the RabbitMQ secret key
 Return the RabbitMQ host
 */}}
 {{- define "osie.rabbitmq.vhost" -}}
-{{- if .Values.rabbitmq.enabled }}
-    {{- printf "/" -}}
-{{- else -}}
-    {{- printf "%s" (.Values.externalRabbitmq.vhost | default "/") -}}
-{{- end -}}
+{{- printf "%s" (.Values.externalRabbitmq.vhost | default "/") -}}
 {{- end -}}
 
 {{- define "osie.rabbitmq.tls" -}}
-{{- if and (not .Values.rabbitmq.enabled) .Values.externalRabbitmq.tls.enabled -}}true{{- end -}}
+{{- if .Values.externalRabbitmq.tls.enabled -}}true{{- end -}}
 {{- end -}}
 
 {{- define "osie.rabbitmq.tlsCa" -}}
@@ -312,14 +243,8 @@ Return the bcrypt password secret name
 {{- end -}}
 {{- end -}}
 
-{{- define "osie.keycloakConfig.secretName" -}}
-{{- printf "%s-env-secret" (include "common.names.dependency.fullname" (dict "chartName" "keycloak" "chartValues" .Values.keycloak "context" $)) }}
-{{- end -}}
-
 {{- define "osie.ui.oauth2IssuerUri" -}}
-{{- if .Values.keycloak.enabled -}}
-{{- printf "%s/realms/%s" (include "osie.keycloakUrl" . ) .Values.ui.realm.name -}}
-{{- else if .Values.global.oauth2.issuerUri -}}
+{{- if .Values.global.oauth2.issuerUri -}}
 {{- .Values.global.oauth2.issuerUri -}}
 {{- else if .Values.ui.oauth2.issuerUri -}}
 {{- .Values.ui.oauth2.issuerUri -}}
@@ -327,9 +252,7 @@ Return the bcrypt password secret name
 {{- end -}}
 
 {{- define "osie.admin.oauth2IssuerUri" -}}
-{{- if (and .Values.keycloak.enabled (not .Values.admin.oauth2.issuerUri)) -}}
-{{- printf "%s/realms/%s" (include "osie.keycloakUrl" . ) .Values.admin.realm.name -}}
-{{- else if .Values.global.oauth2.issuerUri -}}
+{{- if .Values.global.oauth2.issuerUri -}}
 {{- .Values.global.oauth2.issuerUri -}}
 {{- else if .Values.admin.oauth2.issuerUri -}}
 {{- .Values.admin.oauth2.issuerUri -}}
@@ -337,9 +260,7 @@ Return the bcrypt password secret name
 {{- end -}}
 
 {{- define "osie.adminApi.oauth2IssuerUri" -}}
-{{- if (and .Values.keycloak.enabled (not .Values.adminApi.oauth2.issuerUri)) -}}
-{{- printf "%s/realms/%s" (include "osie.keycloakUrl" . ) .Values.admin.realm.name -}}
-{{- else if .Values.global.oauth2.issuerUri -}}
+{{- if .Values.global.oauth2.issuerUri -}}
 {{- .Values.global.oauth2.issuerUri -}}
 {{- else if .Values.adminApi.oauth2.issuerUri -}}
 {{- .Values.adminApi.oauth2.issuerUri -}}
@@ -481,7 +402,7 @@ Bcrypt password
     - name: MONGODB_USER
       {{ include "osie.mongodb.usernameEnv" . | nindent 6 }}
     - name: MONGODB_DATABASE
-      value: {{ ternary (index .Values.mongodb.auth.databases 0) .Values.externalMongodb.database .Values.mongodb.enabled | quote }}
+      value: {{ .Values.externalMongodb.database | quote }}
     - name: RABBITMQ_HOST
       value: {{ include "osie.rabbitmq.host" . | quote }}
     - name: RABBITMQ_PORT
@@ -565,10 +486,6 @@ spec:
           port: {{ .service.port }}
 {{- end -}}
 
-{{- define "osie.keycloakRealmConfigMap" -}}
-{{- printf "%s-realm" (include "common.names.fullname" .) }}
-{{- end -}}
-
 {{- define "osie.httpScheme" -}}
 {{- if or .Values.global.ingress.tls (and .Values.global.gateway.enabled .Values.global.gateway.tls) }}
     {{- "https" -}}
@@ -632,46 +549,33 @@ spec:
 {{- printf "%s/api-v1" (include "osie.apiBaseUrl" .) -}}
 {{- end -}}
 
-{{- define "osie.keycloakUrl" -}}
-{{- printf "%s://%s" (include "osie.httpScheme" .) (tpl (.Values.keycloak.ingress.hostname | default .Values.global.ingress.hostname) .) -}}
-{{- end -}}
-
-{{- define "osie.keycloak.auth.secretName" -}}
-{{- if .Values.keycloak.auth.existingSecret -}}
-{{- .Values.keycloak.auth.existingSecret }}
-{{- else -}}
-{{- printf "%s-keycloak" (include "common.names.fullname" .) }}
-{{- end -}}
-{{- end -}}
-
-{{- define "osie.keycloak.smtp" }}
-{{- if .Values.smtp.enabled -}}
-smtpServer:
-{{- if .Values.smtp.auth }}
-  password: {{ required ".Values.smtp.password is required" .Values.smtp.password }}
-  user: {{ required ".Values.smtp.user is required" .Values.smtp.user}}
-  auth: true
-{{- end }}
-  starttls: {{ .Values.smtp.starttls }}
-  port: {{ required ".Values.smtp.port is required" .Values.smtp.port }}
-  host: {{ required ".Values.smtp.host is required" .Values.smtp.host }}
-  from: {{ required ".Values.smtp.from is required" .Values.smtp.from }}
-  fromDisplayName: {{ required ".Values.smtp.fromDisplayName is required" .Values.smtp.fromDisplayName }}
-{{- end -}}
-{{- end}}
-
 {{- define "osie.ui.accountConsoleUrl" }}
-{{- if (and .Values.keycloak.enabled (not .Values.ui.oauth2.accountConsoleUrl)) }}
-{{- printf "%s/account" (include "osie.ui.oauth2IssuerUri" .) }}
-{{- else }}
 {{- .Values.ui.oauth2.accountConsoleUrl }}
-{{- end }}
 {{- end }}
 
 {{- define "osie.admin.accountConsoleUrl" }}
-{{- if (and .Values.keycloak.enabled (not .Values.admin.oauth2.accountConsoleUrl))}}
-{{- printf "%s/account" (include "osie.admin.oauth2IssuerUri" .)}}
-{{- else }}
 {{- .Values.admin.oauth2.accountConsoleUrl}}
 {{- end }}
-{{- end }}
+
+{{/* Fails while the release still runs the MongoDB, RabbitMQ or Keycloak earlier chart versions bundled */}}
+{{- define "osie.bundledServicesGuard" -}}
+{{- $migrate := "https://github.com/osie/deployment/tree/main/kubernetes/migrate-bundled" -}}
+{{- $found := list -}}
+{{- range $kind := list "Deployment" "StatefulSet" -}}
+{{- range $o := (lookup "apps/v1" $kind $.Release.Namespace "").items | default list -}}
+{{- $labels := $o.metadata.labels | default dict -}}
+{{- if and (eq (get $labels "app.kubernetes.io/instance") $.Release.Name) (regexMatch "^(mongodb|rabbitmq|keycloak|postgresql)-[0-9]" (get $labels "helm.sh/chart")) -}}
+{{- $found = append $found (printf "%s/%s" (lower $kind) $o.metadata.name) -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- if $found -}}
+{{- fail (printf "\n\nRelease %s still runs the bundled MongoDB, RabbitMQ or Keycloak (%s), which this chart version no longer includes. Upgrading would delete them and their data, so nothing was changed. Stay on chart 26.8.2, move them with %s, then upgrade." $.Release.Name (join ", " $found) $migrate) -}}
+{{- end -}}
+{{- if not .Values.externalMongodb.hosts -}}
+{{- fail (printf "\n\nexternalMongodb.hosts is required: this chart version no longer bundles MongoDB. A release that still runs the bundled MongoDB has to be moved first: %s" $migrate) -}}
+{{- end -}}
+{{- if not .Values.externalRabbitmq.host -}}
+{{- fail (printf "\n\nexternalRabbitmq.host is required: this chart version no longer bundles RabbitMQ. A release that still runs the bundled RabbitMQ has to be moved first: %s" $migrate) -}}
+{{- end -}}
+{{- end -}}
