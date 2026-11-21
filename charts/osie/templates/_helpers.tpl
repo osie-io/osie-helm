@@ -570,7 +570,7 @@ spec:
 {{- end -}}
 {{- end -}}
 {{- if $found -}}
-{{- fail (printf "\n\nRelease %s still runs the bundled MongoDB, RabbitMQ or Keycloak (%s), which this chart version no longer includes. Upgrading would delete them and their data, so nothing was changed. Stay on chart 26.8, move them with %s, then upgrade." $.Release.Name (join ", " $found) $migrate) -}}
+{{- fail (printf "\n\nRelease %s still runs the bundled MongoDB, RabbitMQ or Keycloak (%s), which this chart version no longer includes. Upgrading would delete them and their data, so nothing was changed. Stay on chart 26.8.2, move them with %s, then upgrade." $.Release.Name (join ", " $found) $migrate) -}}
 {{- end -}}
 {{- if not .Values.externalMongodb.hosts -}}
 {{- fail (printf "\n\nexternalMongodb.hosts is required: this chart version no longer bundles MongoDB. A release that still runs the bundled MongoDB has to be moved first: %s" $migrate) -}}

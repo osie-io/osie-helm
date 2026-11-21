@@ -3,10 +3,10 @@ The chart runs the osie API, client portal and admin. MongoDB, RabbitMQ and the 
 outside it, for example from the operators in [osie/deployment](https://github.com/osie/deployment/tree/main/kubernetes).
 
 ### Upgrading a release that runs the bundled MongoDB, RabbitMQ or Keycloak
-Chart versions up to 26.8 bundled them, and turned them on by default. This version no longer does, and
-it refuses to upgrade a release that still runs them, before anything changes, because Helm would
+Chart versions up to 26.8.2 bundled them, and turned them on by default. 26.8.3 and later no longer do, and
+refuse to upgrade a release that still runs them, before anything changes, because Helm would
 delete them with their data. Move the release first with
-[migrate-bundled](https://github.com/osie/deployment/tree/main/kubernetes/migrate-bundled), on chart 26.8,
+[migrate-bundled](https://github.com/osie/deployment/tree/main/kubernetes/migrate-bundled), on chart 26.8.2,
 then upgrade with the values it writes merged into yours.
 
 The check reads the cluster, which tools that only render the chart cannot do (Argo CD, `helm template`).
