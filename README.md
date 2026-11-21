@@ -2,17 +2,8 @@
 The chart runs the osie API, client portal and admin. MongoDB, RabbitMQ and the identity provider run
 outside it, for example from the operators in [osie/deployment](https://github.com/osie/deployment/tree/main/kubernetes).
 
-### Upgrading a release that runs the bundled MongoDB, RabbitMQ or Keycloak
-Chart versions up to 26.8.2 bundled them, and turned them on by default. 26.8.3 and later no longer do, and
-refuse to upgrade a release that still runs them, before anything changes, because Helm would
-delete them with their data. Move the release first with
-[migrate-bundled](https://github.com/osie/deployment/tree/main/kubernetes/migrate-bundled), on chart 26.8.2,
-then upgrade with the values it writes merged into yours.
-
-The check reads the cluster, which tools that only render the chart cannot do (Argo CD, `helm template`).
-There the chart still requires `externalMongodb.hosts` and `externalRabbitmq.host`, which a release on the
-bundled services does not have, but it cannot see a bundled Keycloak. With Argo CD, migrate before you
-move the release to this chart version.
+Running the MongoDB, RabbitMQ or Keycloak bundled with chart 26.8.2 or earlier? See
+[Upgrading a release that runs the bundled MongoDB, RabbitMQ or Keycloak](#upgrading-a-release-that-runs-the-bundled-mongodb-rabbitmq-or-keycloak).
 
 ### Full documentation
 
@@ -147,3 +138,15 @@ osie-api-1                    1/1     Running   0          15m
 osie-ui-5b85f6586c-4dk2p      1/1     Running   0          18m
 osie-ui-5b85f6586c-tm8gq      1/1     Running   0          18m
 ```
+
+### Upgrading a release that runs the bundled MongoDB, RabbitMQ or Keycloak
+Chart versions up to 26.8.2 bundled them, and turned them on by default. 26.8.3 and later no longer do, and
+refuse to upgrade a release that still runs them, before anything changes, because Helm would
+delete them with their data. Move the release first with
+[migrate-bundled](https://github.com/osie/deployment/tree/main/kubernetes/migrate-bundled), on chart 26.8.2,
+then upgrade with the values it writes merged into yours.
+
+The check reads the cluster, which tools that only render the chart cannot do (Argo CD, `helm template`).
+There the chart still requires `externalMongodb.hosts` and `externalRabbitmq.host`, which a release on the
+bundled services does not have, but it cannot see a bundled Keycloak. With Argo CD, migrate before you
+move the release to this chart version.
